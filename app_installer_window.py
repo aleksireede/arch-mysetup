@@ -1,10 +1,12 @@
 import subprocess
-from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QWidget, QPushButton, QListWidget, QListWidgetItem, QMessageBox, QInputDialog
+from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QWidget, QPushButton, QListWidget, QListWidgetItem, QMessageBox, QInputDialog, QDialog
 from PyQt5.QtCore import Qt
+import json
+from remove_app_dialog import RemoveAppDialog
 from installer_logic import (
-    load_apps_from_json, save_selections, load_selections,
-    is_app_installed, install_app, check_if_installed
+    load_apps_from_json, is_app_installed, install_app, check_if_installed
 )
+
 
 class ArchAppInstaller(QMainWindow):
     def __init__(self):
@@ -12,7 +14,7 @@ class ArchAppInstaller(QMainWindow):
         self.setWindowTitle("Arch App Installer")
         self.setGeometry(100, 100, 500, 400)
         self.apps = load_apps_from_json()
-        self.selected_apps = load_selections()
+        self.selected_apps=""
         self.initUI()
 
     def initUI(self):
@@ -28,7 +30,7 @@ class ArchAppInstaller(QMainWindow):
         self.refresh_app_list()
 
         # Buttons
-        self.add_app_button = QPushButton("Add Applications")
+        self.add_app_button = QPushButton("Add Applications to list")
         self.add_app_button.clicked.connect(self.add_applications)
 
         self.select_all_button = QPushButton("Select All")
@@ -37,11 +39,10 @@ class ArchAppInstaller(QMainWindow):
         self.install_button = QPushButton("Install Selected")
         self.install_button.clicked.connect(self.install_selected)
 
-        self.remove_app_button = QPushButton("Remove Applications")
+        self.remove_app_button = QPushButton("Remove Applications from list")
         self.remove_app_button.clicked.connect(self.remove_applications)
 
         self.layout.addWidget(self.remove_app_button)
-
 
         # Add widgets to the layout
         self.layout.addWidget(self.add_app_button)
@@ -51,57 +52,42 @@ class ArchAppInstaller(QMainWindow):
         self.central_widget.setLayout(self.layout)
 
     def remove_applications(self):
-        """Remove applications from the app list (including installed ones)."""
         if not self.apps:
-            QMessageBox.information(self, "Empty", "No applications to remove.")
+            QMessageBox.information(
+                self, "Empty", "No applications to remove.")
             return
 
-        items, ok = QInputDialog.getItem(
-            self,
-            "Remove Applications",
-            "Select application to remove:",
-            self.apps,
-            editable=False
-        )
+        dialog = RemoveAppDialog(self, self.apps)
+        if dialog.exec_() == QDialog.Accepted and dialog.selected_item:
+            item = dialog.selected_item
 
-        if ok and items:
-            confirm = QMessageBox.question(
-                self,
-                "Confirm Removal",
-                f"Remove '{items}' from the application list?",
-                QMessageBox.Yes | QMessageBox.No
-            )
+            # Remove from lists
+            if item in self.apps:
+                self.apps.remove(item)
+            if item in self.selected_apps:
+                self.selected_apps.remove(item)
 
-            if confirm == QMessageBox.Yes:
-                # Remove from app list
-                self.apps.remove(items)
+            # Save changes
+            self.apps.sort()
+            with open("apps.json", "w") as f:
+                json.dump(self.apps, f)
 
-                # Also remove from selected apps if present
-                if items in self.selected_apps:
-                    self.selected_apps.remove(items)
+            # Refresh UI
+            self.refresh_app_list()
 
-                # Save changes
-                import json
-                with open("apps.json", "w") as f:
-                    json.dump(self.apps, f)
-
-                save_selections(self.selected_apps)
-
-                # Reload + refresh UI
-                self.apps = load_apps_from_json()
-                self.refresh_app_list()
-
-                QMessageBox.information(self, "Removed", f"'{items}' removed successfully.")
-
+            QMessageBox.information(
+                self, "Removed", f"'{item}' removed successfully.")
 
     def refresh_app_list(self):
         """Refresh the list of applications, hiding installed apps."""
         self.list_widget.clear()
-        uninstalled_apps = [app for app in self.apps if not is_app_installed(app)]
+        uninstalled_apps = [
+            app for app in self.apps if not is_app_installed(app)]
 
         if not uninstalled_apps:
             item = QListWidgetItem("All apps installed!")
-            item.setFlags(item.flags() & ~Qt.ItemIsSelectable & ~Qt.ItemIsUserCheckable)
+            item.setFlags(item.flags() & ~Qt.ItemIsSelectable &
+                          ~Qt.ItemIsUserCheckable)
             self.list_widget.addItem(item)
         else:
             for app in uninstalled_apps:
@@ -120,7 +106,8 @@ class ArchAppInstaller(QMainWindow):
         )
         if ok and new_app:
             if new_app in self.apps:
-                QMessageBox.warning(self, "Warning", f"{new_app} is already in the list.")
+                QMessageBox.warning(
+                    self, "Warning", f"{new_app} is already in the list.")
                 return
 
             available_in = []
@@ -157,9 +144,11 @@ class ArchAppInstaller(QMainWindow):
                 msg = f"{new_app} is available in: {', '.join(available_in)}"
                 QMessageBox.information(self, "Available", msg)
             else:
-                QMessageBox.warning(self, "Not Found", f"{new_app} is not available in pacman, paru, or flatpak.")
+                QMessageBox.warning(
+                    self, "Not Found", f"{new_app} is not available in pacman, paru, or flatpak.")
 
             self.apps.append(new_app)
+            self.apps.sort()
             with open("apps.json", "w") as f:
                 import json
                 json.dump(self.apps, f)
@@ -168,7 +157,8 @@ class ArchAppInstaller(QMainWindow):
             self.apps = load_apps_from_json()
             self.refresh_app_list()
 
-            QMessageBox.information(self, "Success", f"Added {new_app} to the list!")
+            QMessageBox.information(
+                self, "Success", f"Added {new_app} to the list!")
 
     def toggle_select_all_apps(self):
         """Toggle between selecting and deselecting all apps."""
@@ -180,7 +170,8 @@ class ArchAppInstaller(QMainWindow):
         for i in range(self.list_widget.count()):
             item = self.list_widget.item(i)
             if item.flags() & Qt.ItemIsUserCheckable:
-                item.setCheckState(Qt.Unchecked if all_selected else Qt.Checked)
+                item.setCheckState(
+                    Qt.Unchecked if all_selected else Qt.Checked)
 
     def install_selected(self):
         selected_apps = []
@@ -199,11 +190,13 @@ class ArchAppInstaller(QMainWindow):
             if confirm == QMessageBox.Yes:
                 for app in selected_apps:
                     if install_app(app):
-                        #self.selected_apps.remove(app)
-                    #else:
-                        QMessageBox.warning(self, "Warning", f"Failed to install {app}.")
-                QMessageBox.information(self, "Success", "Installation process completed!")
-                save_selections(self.selected_apps)
+                        # self.selected_apps.remove(app)
+                        # else:
+                        QMessageBox.warning(
+                            self, "Warning", f"Failed to install {app}.")
+                QMessageBox.information(
+                    self, "Success", "Installation process completed!")
                 self.refresh_app_list()
         else:
-            QMessageBox.warning(self, "No Selection", "No apps selected for installation.")
+            QMessageBox.warning(self, "No Selection",
+                                "No apps selected for installation.")

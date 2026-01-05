@@ -1,26 +1,83 @@
+import shutil
 import subprocess
 import json
 import os
 
+
+def command_exists(cmd):
+    return shutil.which(cmd) is not None
+
+
+def detect_install_method(app_name):
+    """
+    Decide how the app should be installed.
+    Returns: "pacman", "paru", "flatpak", or None
+    """
+
+    # Check official repos
+    try:
+        subprocess.run(
+            ["pacman", "-Si", app_name],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            check=True
+        )
+        return "pacman"
+    except subprocess.CalledProcessError:
+        pass
+
+    # Check AUR via paru
+    if command_exists("paru"):
+        try:
+            subprocess.run(
+                ["paru", "-Si", app_name],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                check=True
+            )
+            return "paru"
+        except subprocess.CalledProcessError:
+            pass
+
+    # Check Flatpak
+    if command_exists("flatpak"):
+        try:
+            subprocess.run(
+                ["flatpak", "search", app_name],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                check=True
+            )
+            return "flatpak"
+        except subprocess.CalledProcessError:
+            pass
+
+    return None
+
+
 def check_if_installed(command):
     """Check if a command is available in the system."""
     try:
-        subprocess.run(["which", command], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        subprocess.run(["which", command], check=True,
+                       stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         return True
     except subprocess.CalledProcessError:
         return False
 
+
 def is_app_installed(app_name):
     """Check if an app is installed using pacman, paru, or flatpak."""
     try:
-        subprocess.run(["pacman", "-Q", app_name], stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+        subprocess.run(["pacman", "-Q", app_name],
+                       stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
         return True
     except subprocess.CalledProcessError:
         pass
 
     if check_if_installed("paru"):
         try:
-            subprocess.run(["paru", "-Q", app_name], stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+            subprocess.run(["paru", "-Q", app_name],
+                           stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
             return True
         except subprocess.CalledProcessError:
             pass
@@ -35,13 +92,15 @@ def is_app_installed(app_name):
 
     return False
 
+
 def install_paru():
     """Install paru if not already installed."""
     if check_if_installed("paru"):
         return True
     try:
         subprocess.run(
-            ["pkexec", "bash", "-c", "cd /opt && git clone https://aur.archlinux.org/paru.git && cd paru && makepkg -si --noconfirm"],
+            ["pkexec", "bash", "-c",
+                "cd /opt && git clone https://aur.archlinux.org/paru.git && cd paru && makepkg -si --noconfirm"],
             check=True
         )
         return True
@@ -49,62 +108,97 @@ def install_paru():
         print(f"Failed to install Paru: {e}")
         return False
 
+
 def install_flatpak():
     """Install flatpak if not already installed."""
     if check_if_installed("flatpak"):
         return True
     try:
-        subprocess.run(["pkexec", "pacman", "-S", "--noconfirm", "flatpak"], check=True)
+        subprocess.run(["pkexec", "pacman", "-S",
+                       "--noconfirm", "flatpak"], check=True)
         return True
     except subprocess.CalledProcessError as e:
         print(f"Failed to install Flatpak: {e}")
         return False
 
+
+def open_terminal(command):
+    terminals = [
+        ("kgx", ["--"]),
+        ("konsole", ["-e"]),
+        ("xfce4-terminal", ["-e"]),
+        ("xterm", ["-e"]),
+    ]
+
+    for term, args in terminals:
+        if shutil.which(term):
+            subprocess.Popen([term, *args, *command])
+            return
+
+    raise RuntimeError("No supported terminal emulator found")
+
+
 def install_app(app_name):
-    """Try to install an app using pacman, paru, or flatpak in order."""
+    method = detect_install_method(app_name)
+
+    if not method:
+        print(f"No install source found for {app_name}")
+        return False
+
     try:
-        subprocess.run(["pkexec", "pacman", "-S", "--noconfirm", app_name], check=True)
+        if method == "pacman":
+            open_terminal(
+                ["pkexec", "pacman", "-S", "--noconfirm", app_name]
+            )
+
+        elif method == "paru":
+            open_terminal(
+                [
+                    "paru",
+                    "-S",
+                    "--noconfirm",
+                    "--skipreview",
+                    "--needed",
+                    app_name
+                ]
+            )
+
+        elif method == "flatpak":
+            open_terminal(
+                [
+                    "pkexec",
+                    "flatpak",
+                    "install",
+                    "-y",
+                    "flathub",
+                    app_name
+                ]
+            )
+
+        print(f"{app_name} installed successfully using {method}")
         return True
-    except subprocess.CalledProcessError:
-        try:
-            if check_if_installed("paru"):
-                subprocess.run(["paru", "-S", "--noconfirm", app_name], check=True)
-                return True
-        except subprocess.CalledProcessError:
-            try:
-                if check_if_installed("flatpak"):
-                    subprocess.run(["flatpak", "install", "-y", "flathub", app_name], check=True)
-                    return True
-            except subprocess.CalledProcessError as e:
-                print(f"Failed to install {app_name} with all methods: {e}")
-                return False
-    return False
+
+    except subprocess.CalledProcessError as e:
+        print(f"Installation failed: {e}")
+        return False
+
 
 def load_apps_from_json():
-    """Load the list of apps from a JSON file."""
     if not os.path.exists("apps.json"):
-        default_apps = [
-            "firefox", "vlc", "gimp", "libreoffice", "steam",
-            "spotify", "discord", "visual-studio-code", "python", "git", "zsh"
-        ]
-        with open("apps.json", "w") as f:
-            json.dump(default_apps, f)
-        return default_apps
-    else:
-        with open("apps.json", "r") as f:
-            return json.load(f)
+        # If the file doesn't exist, return empty list
+        return []
 
-def save_selections(selections):
-    """Save the selected apps to a settings file."""
-    with open("settings.json", "w") as f:
-        json.dump(selections, f)
+    with open("apps.json", "r") as f:
+        try:
+            data = json.load(f)
+            if not isinstance(data, list):
+                # Ensure it's a list
+                return []
+            return data
+        except json.JSONDecodeError:
+            # If the file is empty or invalid, return empty list
+            return []
 
-def load_selections():
-    """Load the selected apps from the settings file."""
-    if os.path.exists("settings.json"):
-        with open("settings.json", "r") as f:
-            return json.load(f)
-    return []
 
 def add_samba_drive(share_path, mount_point, username, password):
     """Add a Samba network drive to fstab and create .smbcredentials."""
@@ -123,7 +217,8 @@ def add_samba_drive(share_path, mount_point, username, password):
     # Run the setup script with pkexec
     try:
         script_path = os.path.join(os.path.dirname(__file__), "setup_samba.sh")
-        subprocess.run(["pkexec", script_path, mount_point, share_path, cred_file], check=True)
+        subprocess.run(["pkexec", script_path, mount_point,
+                       share_path, cred_file], check=True)
     except subprocess.CalledProcessError as e:
         print(f"Failed to setup Samba drive: {e}")
         return False

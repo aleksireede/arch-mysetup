@@ -1,7 +1,9 @@
+#!/usr/bin/env python
 import sys
 from PyQt5.QtWidgets import QApplication
 from setup_window import SetupWindow
 from app_installer_window import ArchAppInstaller
+
 
 def main():
     app = QApplication(sys.argv)
@@ -17,6 +19,7 @@ def main():
     setup_window.show()
 
     sys.exit(app.exec_())
+
 
 if __name__ == "__main__":
     main()
