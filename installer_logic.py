@@ -11,7 +11,7 @@ def command_exists(cmd):
 def detect_install_method(app_name):
     """
     Decide how the app should be installed.
-    Returns: "pacman", "paru", "flatpak", or None
+    Returns: "pacman", "paru" or None
     """
 
     # Check official repos
@@ -38,20 +38,6 @@ def detect_install_method(app_name):
             return "paru"
         except subprocess.CalledProcessError:
             pass
-
-    # Check Flatpak
-    if command_exists("flatpak"):
-        try:
-            subprocess.run(
-                ["flatpak", "search", app_name],
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
-                check=True
-            )
-            return "flatpak"
-        except subprocess.CalledProcessError:
-            pass
-
     return None
 
 
@@ -66,7 +52,7 @@ def check_if_installed(command):
 
 
 def is_app_installed(app_name):
-    """Check if an app is installed using pacman, paru, or flatpak."""
+    """Check if an app is installed using pacman or paru."""
     try:
         subprocess.run(["pacman", "-Q", app_name],
                        stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
@@ -81,15 +67,6 @@ def is_app_installed(app_name):
             return True
         except subprocess.CalledProcessError:
             pass
-
-    if check_if_installed("flatpak"):
-        try:
-            subprocess.run(["flatpak", "list", "--app", "--columns=application", app_name],
-                           stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
-            return True
-        except subprocess.CalledProcessError:
-            pass
-
     return False
 
 
@@ -106,19 +83,6 @@ def install_paru():
         return True
     except subprocess.CalledProcessError as e:
         print(f"Failed to install Paru: {e}")
-        return False
-
-
-def install_flatpak():
-    """Install flatpak if not already installed."""
-    if check_if_installed("flatpak"):
-        return True
-    try:
-        subprocess.run(["pkexec", "pacman", "-S",
-                       "--noconfirm", "flatpak"], check=True)
-        return True
-    except subprocess.CalledProcessError as e:
-        print(f"Failed to install Flatpak: {e}")
         return False
 
 
@@ -159,18 +123,6 @@ def install_app(app_name):
                     "--noconfirm",
                     "--skipreview",
                     "--needed",
-                    app_name
-                ]
-            )
-
-        elif method == "flatpak":
-            open_terminal(
-                [
-                    "pkexec",
-                    "flatpak",
-                    "install",
-                    "-y",
-                    "flathub",
                     app_name
                 ]
             )

@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QWidget, QPushButton, QLabel, QHBoxLayout, QMessageBox, QInputDialog, QLineEdit
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPixmap
-from installer_logic import install_paru, install_flatpak, check_if_installed, add_samba_drive
+from installer_logic import install_paru, check_if_installed, add_samba_drive
 
 class SetupWindow(QMainWindow):
     def __init__(self, app_installer_callback):
@@ -27,17 +27,6 @@ class SetupWindow(QMainWindow):
         self.paru_layout.addWidget(self.paru_status)
         self.paru_layout.addWidget(self.install_paru_button)
 
-        # Flatpak
-        self.flatpak_layout = QHBoxLayout()
-        self.flatpak_label = QLabel("Flatpak:")
-        self.flatpak_status = QLabel()
-        self.update_flatpak_status()
-        self.install_flatpak_button = QPushButton("Install Flatpak")
-        self.install_flatpak_button.clicked.connect(self.handle_install_flatpak)
-        self.flatpak_layout.addWidget(self.flatpak_label)
-        self.flatpak_layout.addWidget(self.flatpak_status)
-        self.flatpak_layout.addWidget(self.install_flatpak_button)
-
         # Add Network Drive
         self.add_network_drive_button = QPushButton("Add Network Drive (Samba)")
         self.add_network_drive_button.clicked.connect(self.add_network_drive)
@@ -48,7 +37,6 @@ class SetupWindow(QMainWindow):
 
         # Add to main layout
         self.layout.addLayout(self.paru_layout)
-        self.layout.addLayout(self.flatpak_layout)
         self.layout.addWidget(self.add_network_drive_button)
         self.layout.addWidget(self.proceed_button)
         self.central_widget.setLayout(self.layout)
@@ -66,32 +54,12 @@ class SetupWindow(QMainWindow):
             except:
                 self.paru_status.setText("✗")
 
-    def update_flatpak_status(self):
-        """Update the Flatpak status icon or text."""
-        if check_if_installed("flatpak"):
-            try:
-                self.flatpak_status.setPixmap(QPixmap("checkmark.svg").scaled(20, 20))
-            except:
-                self.flatpak_status.setText("✓")
-        else:
-            try:
-                self.flatpak_status.setPixmap(QPixmap("red_x.svg").scaled(20, 20))
-            except:
-                self.flatpak_status.setText("✗")
-
     def handle_install_paru(self):
         if install_paru():
             QMessageBox.information(self, "Success", "Paru installed successfully!")
             self.update_paru_status()
         else:
             QMessageBox.critical(self, "Error", "Failed to install Paru.")
-
-    def handle_install_flatpak(self):
-        if install_flatpak():
-            QMessageBox.information(self, "Success", "Flatpak installed successfully!")
-            self.update_flatpak_status()
-        else:
-            QMessageBox.critical(self, "Error", "Failed to install Flatpak.")
 
     def add_network_drive(self):
         """Prompt for Samba share details and add to fstab."""

@@ -126,17 +126,7 @@ class ArchAppInstaller(QMainWindow):
                         ["paru", "-Si", new_app],
                         stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True
                     )
-                    available_in.append("AUR (paru)")
-                except subprocess.CalledProcessError:
-                    pass
-
-            if check_if_installed("flatpak"):
-                try:
-                    subprocess.run(
-                        ["flatpak", "search", new_app],
-                        stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True
-                    )
-                    available_in.append("Flatpak")
+                    available_in.append("AUR")
                 except subprocess.CalledProcessError:
                     pass
 
@@ -145,7 +135,7 @@ class ArchAppInstaller(QMainWindow):
                 QMessageBox.information(self, "Available", msg)
             else:
                 QMessageBox.warning(
-                    self, "Not Found", f"{new_app} is not available in pacman, paru, or flatpak.")
+                    self, "Not Found", f"{new_app} is not available in pacman or AUR.")
 
             self.apps.append(new_app)
             self.apps.sort()
@@ -190,12 +180,11 @@ class ArchAppInstaller(QMainWindow):
             if confirm == QMessageBox.Yes:
                 for app in selected_apps:
                     if install_app(app):
-                        # self.selected_apps.remove(app)
-                        # else:
+                         QMessageBox.information(
+                    self, "Success", "Installation process completed!")
+                    else:
                         QMessageBox.warning(
                             self, "Warning", f"Failed to install {app}.")
-                QMessageBox.information(
-                    self, "Success", "Installation process completed!")
                 self.refresh_app_list()
         else:
             QMessageBox.warning(self, "No Selection",
