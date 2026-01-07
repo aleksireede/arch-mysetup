@@ -145,15 +145,7 @@ def install_app(app_name):
         return False
 
 
-def list_to_string(list):
-    string = ""
-    for i in list:
-        string += i + " "
-    return string
-
-
 def pacman_install(app_list):
-    app_string = list_to_string(app_list)
     try:
         open_terminal(
             [
@@ -172,7 +164,6 @@ def pacman_install(app_list):
 
 
 def paru_install(app_list):
-    app_string = list_to_string(app_list)
     try:
         open_terminal(
             [
