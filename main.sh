@@ -33,3 +33,18 @@ sudo pacman -S python python-pip
 sudo pacman -S python-pyqt5
 sudo pacman -S qt5-base qt5-xcb-private-headers libxcb
 export QT_PLUGIN_PATH=/usr/lib/qt/plugins
+export LD_BIND_NOW=1
+
+hrtf audio in openal games
+nano ~/.alsoftrc
+hrtf = true
+
+smbus i2c for openrgb
+sudo nano /etc/modules-load.d/i2c-dev.conf
+i2c_dev
+
+sudo cpupower frequency-set -g performance
+sudo systemctl enable --now cpupower.service
+sudo nano /etc/default/cpupower
+governor='performance'
+sudo systemctl restart cpupower

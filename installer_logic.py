@@ -2,6 +2,7 @@ import shutil
 import subprocess
 import json
 import os
+from pathlib import Path
 
 
 def command_exists(cmd):
@@ -112,7 +113,15 @@ def install_app(app_name):
     try:
         if method == "pacman":
             open_terminal(
-                ["pkexec", "pacman", "-S", "--noconfirm", app_name]
+                [
+                    "pkexec",
+                    "pacman",
+                    "-S",
+                    "--noconfirm",
+                    "--needed",
+                    "--quiet",
+                    app_name
+                ]
             )
 
         elif method == "paru":
@@ -123,6 +132,7 @@ def install_app(app_name):
                     "--noconfirm",
                     "--skipreview",
                     "--needed",
+                    "--quiet",
                     app_name
                 ]
             )
@@ -130,6 +140,51 @@ def install_app(app_name):
         print(f"{app_name} installed successfully using {method}")
         return True
 
+    except subprocess.CalledProcessError as e:
+        print(f"Installation failed: {e}")
+        return False
+
+
+def list_to_string(list):
+    string = ""
+    for i in list:
+        string += i + " "
+    return string
+
+
+def pacman_install(app_list):
+    app_string = list_to_string(app_list)
+    try:
+        open_terminal(
+            [
+                "pkexec",
+                "pacman",
+                "-S",
+                "--noconfirm",
+                "--needed",
+                "--quiet",
+                *app_list
+            ]
+        )
+    except subprocess.CalledProcessError as e:
+        print(f"Installation failed: {e}")
+        return False
+
+
+def paru_install(app_list):
+    app_string = list_to_string(app_list)
+    try:
+        open_terminal(
+            [
+                "paru",
+                "-S",
+                "--noconfirm",
+                "--skipreview",
+                "--needed",
+                "--quiet",
+                *app_list
+            ]
+        )
     except subprocess.CalledProcessError as e:
         print(f"Installation failed: {e}")
         return False
@@ -168,7 +223,7 @@ def add_samba_drive(share_path, mount_point, username, password):
 
     # Run the setup script with pkexec
     try:
-        script_path = os.path.join(os.path.dirname(__file__), "setup_samba.sh")
+        script_path = Path(__file__).parent / "scripts" / "setup_samba.sh"
         subprocess.run(["pkexec", script_path, mount_point,
                        share_path, cred_file], check=True)
     except subprocess.CalledProcessError as e:

@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QWidget, QPushButton, QLabel, QHBoxLayout, QMessageBox, QInputDialog, QLineEdit
-from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPixmap
 from installer_logic import install_paru, check_if_installed, add_samba_drive
+from pathlib import Path
 
 class SetupWindow(QMainWindow):
     def __init__(self, app_installer_callback):
@@ -42,15 +42,17 @@ class SetupWindow(QMainWindow):
         self.central_widget.setLayout(self.layout)
 
     def update_paru_status(self):
+        checkmark_path = Path(__file__).parent / "icons" / "checkmark.svg"
+        red_x_path = Path(__file__).parent / "icons" / "red_x.svg"
         """Update the Paru status icon or text."""
         if check_if_installed("paru"):
             try:
-                self.paru_status.setPixmap(QPixmap("checkmark.svg").scaled(20, 20))
+                self.paru_status.setPixmap(QPixmap(str(checkmark_path)).scaled(20, 20))
             except:
                 self.paru_status.setText("✓")
         else:
             try:
-                self.paru_status.setPixmap(QPixmap("red_x.svg").scaled(20, 20))
+                self.paru_status.setPixmap(QPixmap(str(red_x_path)).scaled(20, 20))
             except:
                 self.paru_status.setText("✗")
 

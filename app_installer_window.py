@@ -4,7 +4,7 @@ from PyQt5.QtCore import Qt
 import json
 from remove_app_dialog import RemoveAppDialog
 from installer_logic import (
-    load_apps_from_json, is_app_installed, install_app, check_if_installed
+    load_apps_from_json, is_app_installed, install_app, check_if_installed, detect_install_method, pacman_install, paru_install
 )
 
 
@@ -14,7 +14,7 @@ class ArchAppInstaller(QMainWindow):
         self.setWindowTitle("Arch App Installer")
         self.setGeometry(100, 100, 500, 400)
         self.apps = load_apps_from_json()
-        self.selected_apps=""
+        self.selected_apps = ""
         self.initUI()
 
     def initUI(self):
@@ -132,23 +132,20 @@ class ArchAppInstaller(QMainWindow):
 
             if available_in:
                 msg = f"{new_app} is available in: {', '.join(available_in)}"
-                QMessageBox.information(self, "Available", msg)
+                # QMessageBox.information(self, "Available", msg)
+                self.apps.append(new_app)
+                self.apps.sort()
+                with open("apps.json", "w") as f:
+                    import json
+                    json.dump(self.apps, f)
+                QMessageBox.information(
+                    self, "Success", msg+f"\nAdded {new_app} to the list!")
+                # 🔥 Reload apps from disk, then refresh UI
+                self.apps = load_apps_from_json()
+                self.refresh_app_list()
             else:
                 QMessageBox.warning(
                     self, "Not Found", f"{new_app} is not available in pacman or AUR.")
-
-            self.apps.append(new_app)
-            self.apps.sort()
-            with open("apps.json", "w") as f:
-                import json
-                json.dump(self.apps, f)
-
-            # 🔥 Reload apps from disk, then refresh UI
-            self.apps = load_apps_from_json()
-            self.refresh_app_list()
-
-            QMessageBox.information(
-                self, "Success", f"Added {new_app} to the list!")
 
     def toggle_select_all_apps(self):
         """Toggle between selecting and deselecting all apps."""
@@ -178,14 +175,25 @@ class ArchAppInstaller(QMainWindow):
             )
 
             if confirm == QMessageBox.Yes:
-                for app in selected_apps:
-                    if install_app(app):
-                         QMessageBox.information(
-                    self, "Success", "Installation process completed!")
-                    else:
-                        QMessageBox.warning(
-                            self, "Warning", f"Failed to install {app}.")
-                self.refresh_app_list()
+                if len(selected_apps) > 1:
+                    pacman_list = []
+                    paru_list = []
+                    # add apps to pacman and paru list respectively
+                    for app in selected_apps:
+                        method = detect_install_method(app)
+                        if method == "paru":
+                            paru_list.append(app)
+                        elif method == "pacman":
+                            pacman_list.append(app)
+                    #check that the lists are not empty
+                    if pacman_list:
+                        pacman_install(pacman_list)
+                    if paru_list:
+                        paru_install(paru_list)
+                else:
+                    for app in selected_apps:
+                        install_app(app)
         else:
             QMessageBox.warning(self, "No Selection",
                                 "No apps selected for installation.")
+        self.refresh_app_list()
