@@ -29,9 +29,7 @@ sudo systemctl enable syncthing@aleksi
 sudo systemctl start syncthing@aleksi
 git config --global credential.helper store
 
-sudo pacman -S python python-pip
-sudo pacman -S python-pyqt5
-sudo pacman -S qt5-base qt5-xcb-private-headers libxcb
+sudo pacman -S python python-pip python-pyqt5 python-pyqt6 qt5-base qt5-xcb-private-headers libxcb
 export QT_PLUGIN_PATH=/usr/lib/qt/plugins
 export LD_BIND_NOW=1
 
@@ -48,3 +46,22 @@ sudo systemctl enable --now cpupower.service
 sudo nano /etc/default/cpupower
 governor='performance'
 sudo systemctl restart cpupower
+
+#disable bluetooth profile auto switch
+wpctl settings --save bluetooth.autoswitch-to-headset-profile false
+
+pactl load-module module-raop-discover
+mkdir -p ~/.config/pipewire/pipewire.conf.d/
+nano ~/.config/pipewire/pipewire.conf.d/my-zeroconf-discover.conf
+context.modules = [
+{   name = libpipewire-module-zeroconf-discover
+    args = { }
+}
+]
+nano ~/.config/pipewire/pipewire.conf.d/raop-discover.conf
+context.modules = [
+    {
+        name = libpipewire-module-raop-discover
+        args = { }
+    }
+]

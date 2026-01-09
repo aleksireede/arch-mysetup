@@ -1,53 +1,72 @@
-from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QWidget, QPushButton, QLabel, QHBoxLayout, QMessageBox, QInputDialog, QLineEdit
+from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QWidget, QPushButton, QLabel, QHBoxLayout, QMessageBox, QInputDialog, QLineEdit, QSizePolicy
 from PyQt5.QtGui import QPixmap
-from installer_logic import install_paru, check_if_installed, add_samba_drive
 from pathlib import Path
+from PyQt5.QtCore import pyqtSignal
+import sys
+sys.path.append("programs")
+from installer_logic import install_paru, check_if_installed, add_samba_drive
 
 class SetupWindow(QMainWindow):
-    def __init__(self, app_installer_callback):
-        super().__init__()
+    open_installer = pyqtSignal()  # Signal to open the installer
+    
+    def __init__(self, parent=None):
+        super().__init__(parent)
         self.setWindowTitle("Setup: Install Paru & Flatpak")
         self.setGeometry(100, 100, 400, 300)
-        self.app_installer_callback = app_installer_callback
         self.initUI()
 
     def initUI(self):
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
-        self.layout = QVBoxLayout()
+        self.layout = QVBoxLayout(self.central_widget)  # Set layout directly on central widget
 
-        # Paru
+        # Paru section
         self.paru_layout = QHBoxLayout()
         self.paru_label = QLabel("Paru (AUR Helper):")
         self.paru_status = QLabel()
-        self.update_paru_status()
         self.install_paru_button = QPushButton("Install Paru")
+        self.update_paru_status()
         self.install_paru_button.clicked.connect(self.handle_install_paru)
+
+        # Add stretch to push buttons to the left and right
         self.paru_layout.addWidget(self.paru_label)
         self.paru_layout.addWidget(self.paru_status)
         self.paru_layout.addWidget(self.install_paru_button)
+        self.paru_layout.addStretch()  # Pushes widgets to the left
 
-        # Add Network Drive
+        # Add Network Drive button
         self.add_network_drive_button = QPushButton("Add Network Drive (Samba)")
         self.add_network_drive_button.clicked.connect(self.add_network_drive)
 
-        # Proceed button
-        self.proceed_button = QPushButton("Proceed to App Installation")
-        self.proceed_button.clicked.connect(self.open_app_installer)
+        # Install apps button
+        self.proceed_button = QPushButton("Install apps")
+        self.proceed_button.clicked.connect(self.open_installer.emit)
 
-        # Add to main layout
+        # Set size policies for buttons
+        self.install_paru_button.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        self.add_network_drive_button.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        self.proceed_button.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+
+        # Add to main layout with stretch
         self.layout.addLayout(self.paru_layout)
-        self.layout.addWidget(self.add_network_drive_button)
+        self.layout.addSpacing(20)
         self.layout.addWidget(self.proceed_button)
-        self.central_widget.setLayout(self.layout)
+        self.layout.addWidget(self.add_network_drive_button)
+        self.layout.addSpacing(20)
+
+        # Allow window to resize
+        self.setMinimumSize(400, 200)
+
+
 
     def update_paru_status(self):
-        checkmark_path = Path(__file__).parent / "icons" / "checkmark.svg"
-        red_x_path = Path(__file__).parent / "icons" / "red_x.svg"
+        checkmark_path = Path(Path(__file__).parent.parent.resolve()).joinpath("icons/checkmark.svg")
+        red_x_path = Path(Path(__file__).parent.parent.resolve()).joinpath("icons/red_x.svg")
         """Update the Paru status icon or text."""
         if check_if_installed("paru"):
             try:
                 self.paru_status.setPixmap(QPixmap(str(checkmark_path)).scaled(20, 20))
+                self.install_paru_button.setText("Installed")
             except:
                 self.paru_status.setText("✓")
         else:
@@ -57,11 +76,14 @@ class SetupWindow(QMainWindow):
                 self.paru_status.setText("✗")
 
     def handle_install_paru(self):
-        if install_paru():
-            QMessageBox.information(self, "Success", "Paru installed successfully!")
-            self.update_paru_status()
+        if check_if_installed("paru"):
+            QMessageBox.information(self, "Installed", "Paru is already installed!")
         else:
-            QMessageBox.critical(self, "Error", "Failed to install Paru.")
+            if install_paru():
+                QMessageBox.information(self, "Success", "Paru installed successfully!")
+                self.update_paru_status()
+            else:
+                QMessageBox.critical(self, "Error", "Failed to install Paru.")
 
     def add_network_drive(self):
         """Prompt for Samba share details and add to fstab."""

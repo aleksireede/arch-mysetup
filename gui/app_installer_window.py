@@ -1,16 +1,21 @@
 import subprocess
-from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QWidget, QPushButton, QListWidget, QListWidgetItem, QMessageBox, QInputDialog, QDialog
+from PyQt5.QtWidgets import QMainWindow, QVBoxLayout,QHBoxLayout, QWidget, QPushButton, QListWidget, QListWidgetItem, QMessageBox, QInputDialog, QDialog
 from PyQt5.QtCore import Qt
 import json
-from remove_app_dialog import RemoveAppDialog
+from gui.remove_app_dialog import RemoveAppDialog
+import sys
+
+from setup_window import SetupWindow
+sys.path.append("programs")
 from installer_logic import (
     load_apps_from_json, is_app_installed, install_app, check_if_installed, detect_install_method, pacman_install, paru_install
 )
 
 
 class ArchAppInstaller(QMainWindow):
-    def __init__(self):
+    def __init__(self,setup_window):
         super().__init__()
+        self.setup_window = setup_window  # Store the reference
         self.setWindowTitle("Arch App Installer")
         self.setGeometry(100, 100, 500, 400)
         self.apps = load_apps_from_json()
@@ -20,41 +25,78 @@ class ArchAppInstaller(QMainWindow):
     def initUI(self):
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
-        self.layout = QVBoxLayout()
+        self.main_layout = QVBoxLayout()
+        self.secondary_layout = QHBoxLayout()
+        self.app_layout = QHBoxLayout()
+        self.third_layout = QHBoxLayout()
+        self.bottom_layout = QHBoxLayout()
 
-        # List widget to display applications
+        # List widget to display Apps
         self.list_widget = QListWidget()
         self.list_widget.setSelectionMode(QListWidget.MultiSelection)
 
-        # Add applications to the list
+        # Add Apps to the list
         self.refresh_app_list()
+        
+        # Add a back button
+        self.back_button = QPushButton("Back")
+        self.back_button.clicked.connect(self.go_back_to_setup)
+        self.back_button.setFixedWidth(100)
 
         # Buttons
-        self.add_app_button = QPushButton("Add Applications to list")
-        self.add_app_button.clicked.connect(self.add_applications)
+        self.add_app_button = QPushButton("Add Apps to list")
+        self.add_app_button.clicked.connect(self.add_Apps)
 
         self.select_all_button = QPushButton("Select All")
         self.select_all_button.clicked.connect(self.toggle_select_all_apps)
 
         self.install_button = QPushButton("Install Selected")
         self.install_button.clicked.connect(self.install_selected)
+        self.install_button.setFixedWidth(200)
 
-        self.remove_app_button = QPushButton("Remove Applications from list")
-        self.remove_app_button.clicked.connect(self.remove_applications)
+        self.remove_app_button = QPushButton("Remove Apps from list")
+        self.remove_app_button.clicked.connect(self.remove_Apps)
+        
+        self.refresh_button = QPushButton("Refresh")
+        self.refresh_button.clicked.connect(self.refresh_app_list)
+        
+        # second layout
+        self.secondary_layout.addWidget(self.back_button)
+        self.secondary_layout.addStretch()
+        
+        # app layout
+        self.app_layout.addWidget(self.remove_app_button)
+        self.app_layout.addWidget(self.add_app_button)
+        
+        # select and refresh layout
+        self.third_layout.addWidget(self.select_all_button)
+        self.third_layout.addStretch()
+        self.third_layout.addWidget(self.refresh_button)
+        
+        # bottom layout
+        self.bottom_layout.addWidget(self.install_button)
 
-        self.layout.addWidget(self.remove_app_button)
+        # add the layouts to the main one
+        self.main_layout.addLayout(self.secondary_layout)
+        self.main_layout.addSpacing(20)
+        self.main_layout.addLayout(self.app_layout)
+        self.main_layout.addLayout(self.third_layout)
+        self.main_layout.addWidget(self.list_widget)
+        self.main_layout.addSpacing(20)
+        self.main_layout.addLayout(self.bottom_layout)
+        
+        self.central_widget.setLayout(self.main_layout)
+        
+    
+    def go_back_to_setup(self):
+        self.setup_window.show()  # Show the setup window
+        self.hide()  # Hide the current window
 
-        # Add widgets to the layout
-        self.layout.addWidget(self.add_app_button)
-        self.layout.addWidget(self.select_all_button)
-        self.layout.addWidget(self.list_widget)
-        self.layout.addWidget(self.install_button)
-        self.central_widget.setLayout(self.layout)
 
-    def remove_applications(self):
+    def remove_Apps(self):
         if not self.apps:
             QMessageBox.information(
-                self, "Empty", "No applications to remove.")
+                self, "Empty", "No Apps to remove.")
             return
 
         dialog = RemoveAppDialog(self, self.apps)
@@ -79,7 +121,7 @@ class ArchAppInstaller(QMainWindow):
                 self, "Removed", f"'{item}' removed successfully.")
 
     def refresh_app_list(self):
-        """Refresh the list of applications, hiding installed apps."""
+        """Refresh the list of Apps, hiding installed apps."""
         self.list_widget.clear()
         uninstalled_apps = [
             app for app in self.apps if not is_app_installed(app)]
@@ -99,8 +141,8 @@ class ArchAppInstaller(QMainWindow):
                     item.setCheckState(Qt.Unchecked)
                 self.list_widget.addItem(item)
 
-    def add_applications(self):
-        """Open a dialog to add new applications to the JSON file, checking availability first."""
+    def add_Apps(self):
+        """Open a dialog to add new Apps to the JSON file, checking availability first."""
         new_app, ok = QInputDialog.getText(
             self, "Add Application", "Enter application name:"
         )
@@ -185,7 +227,7 @@ class ArchAppInstaller(QMainWindow):
                             paru_list.append(app)
                         elif method == "pacman":
                             pacman_list.append(app)
-                    #check that the lists are not empty
+                    # check that the lists are not empty
                     if pacman_list:
                         pacman_install(pacman_list)
                     if paru_list:
@@ -197,3 +239,8 @@ class ArchAppInstaller(QMainWindow):
             QMessageBox.warning(self, "No Selection",
                                 "No apps selected for installation.")
         self.refresh_app_list()
+        
+    def go_back_to_setup(self):
+        self.setup_window.show()  # Show the setup window
+        self.hide()  # Hide the current window
+
