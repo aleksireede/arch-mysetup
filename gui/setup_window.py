@@ -1,21 +1,33 @@
-from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QWidget, QPushButton, QLabel, QHBoxLayout, QMessageBox, QInputDialog, QLineEdit, QSizePolicy
-from PyQt5.QtGui import QPixmap
-from pathlib import Path
-from PyQt5.QtCore import pyqtSignal
 import sys
+from pathlib import Path
+
+from PyQt5.QtCore import pyqtSignal
+from PyQt5.QtGui import QPixmap
+from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QWidget, QPushButton, QLabel, QHBoxLayout, QMessageBox, \
+    QInputDialog, QLineEdit, QSizePolicy
+
 sys.path.append("programs")
-from installer_logic import install_paru, check_if_installed, add_samba_drive
+from programs.installer_logic import install_paru, check_if_installed, add_samba_drive
+
 
 class SetupWindow(QMainWindow):
     open_installer = pyqtSignal()  # Signal to open the installer
-    
+
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.proceed_button = None
+        self.add_network_drive_button = None
+        self.install_paru_button = None
+        self.paru_status = None
+        self.paru_label = None
+        self.paru_layout = None
+        self.layout = None
+        self.central_widget = None
         self.setWindowTitle("Setup: Install Paru & Flatpak")
         self.setGeometry(100, 100, 400, 300)
-        self.initUI()
+        self.init_ui()
 
-    def initUI(self):
+    def init_ui(self):
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
         self.layout = QVBoxLayout(self.central_widget)  # Set layout directly on central widget
@@ -57,25 +69,18 @@ class SetupWindow(QMainWindow):
         # Allow window to resize
         self.setMinimumSize(400, 200)
 
-
-
     def update_paru_status(self):
         checkmark_path = Path(Path(__file__).parent.parent.resolve()).joinpath("icons/checkmark.svg")
         red_x_path = Path(Path(__file__).parent.parent.resolve()).joinpath("icons/red_x.svg")
         """Update the Paru status icon or text."""
         if check_if_installed("paru"):
-            try:
-                self.paru_status.setPixmap(QPixmap(str(checkmark_path)).scaled(20, 20))
-                self.install_paru_button.setText("Installed")
-            except:
-                self.paru_status.setText("✓")
+            self.paru_status.setPixmap(QPixmap(str(checkmark_path)).scaled(20, 20))
+            self.install_paru_button.setText("Installed")
         else:
-            try:
-                self.paru_status.setPixmap(QPixmap(str(red_x_path)).scaled(20, 20))
-            except:
-                self.paru_status.setText("✗")
+            self.paru_status.setPixmap(QPixmap(str(red_x_path)).scaled(20, 20))
 
     def handle_install_paru(self):
+        print(install_paru())
         if check_if_installed("paru"):
             QMessageBox.information(self, "Installed", "Paru is already installed!")
         else:

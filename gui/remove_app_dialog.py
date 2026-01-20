@@ -1,5 +1,5 @@
-from PyQt5.QtWidgets import QDialog, QVBoxLayout, QListWidget, QPushButton, QMessageBox
 from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QDialog, QVBoxLayout, QListWidget, QPushButton, QMessageBox
 
 
 class RemoveAppDialog(QDialog):
@@ -8,7 +8,7 @@ class RemoveAppDialog(QDialog):
     def __init__(self, parent, apps):
         super().__init__(parent)
         self.setWindowTitle("Remove Applications")
-        self.setWindowModality(Qt.ApplicationModal)
+        self.setWindowModality(Qt.WindowModality.ApplicationModal)
         self.selected_item = None
 
         layout = QVBoxLayout(self)

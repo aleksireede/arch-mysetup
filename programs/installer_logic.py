@@ -1,8 +1,9 @@
-import shutil
-import subprocess
 import json
 import os
+import shutil
+import subprocess
 from pathlib import Path
+import time
 
 
 def command_exists(cmd):
@@ -52,6 +53,26 @@ def check_if_installed(command):
         return False
 
 
+def list_pacman_apps():
+    try:
+        cmd = [str(Path("pacman")), "-Qenq"]
+        result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, check=True)
+        applist = result.stdout.splitlines()
+        return applist
+    except subprocess.CalledProcessError:
+        return []
+
+
+def list_paru_apps():
+    try:
+        cmd = [str(Path("paru")), "-Qemq"]
+        result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, check=True)
+        applist = result.stdout.splitlines()
+        return applist
+    except subprocess.CalledProcessError:
+        return []
+
+
 def is_app_installed(app_name):
     """Check if an app is installed using pacman or paru."""
     try:
@@ -73,32 +94,55 @@ def is_app_installed(app_name):
 
 def install_paru():
     """Install paru if not already installed."""
+    script_path = Path(__file__).parent.parent.resolve().joinpath("scripts", "install_paru.sh")
     if check_if_installed("paru"):
         return True
     try:
-        subprocess.run(
-            ["pkexec", "bash", "-c",
-                "cd /opt && git clone https://aur.archlinux.org/paru.git && cd paru && makepkg -si --noconfirm"],
-            check=True
-        )
+        subprocess.run(["chmod", "+x", str(script_path)], check=True)
+        paru = open_terminal(script_path)
+        # Poll the process in a loop
+        while True:
+            exit_code = paru.poll()
+            if exit_code is not None:
+                if exit_code == 0:
+                    print("Terminal command exited successfully")
+                else:
+                    print(f"Terminal command failed with exit code {exit_code}")
+                break
+            print("Terminal command is still running...")
+            time.sleep(1)  # Check every second
         return True
     except subprocess.CalledProcessError as e:
         print(f"Failed to install Paru: {e}")
         return False
 
 
+# open a command in a terminal window
+# now supports more terminals
 def open_terminal(command):
     terminals = [
         ("kgx", ["--"]),
         ("konsole", ["-e"]),
         ("xfce4-terminal", ["-e"]),
         ("xterm", ["-e"]),
+        ("alacritty", ["-e"]),
+        ("deepin-terminal", ["--run-script"]),
+        ("hyper", ["--"]),
+        ("putty", ["-e"]),
+        ("mate-terminal", ["--"]),
     ]
 
     for term, args in terminals:
         if shutil.which(term):
-            subprocess.Popen([term, *args, *command])
-            return
+            try:
+                if term in ["alacritty"]:
+                    process = subprocess.Popen([term, *args, command])
+                else:
+                    process = subprocess.Popen(
+                        [term, *args, *command] if isinstance(command, list) else [term, *args, command])
+                return process  # Return the Popen object for polling
+            except Exception:
+                continue
 
     raise RuntimeError("No supported terminal emulator found")
 
@@ -120,6 +164,8 @@ def install_app(app_name):
                     "--noconfirm",
                     "--needed",
                     "--quiet",
+                    "--color",
+                    "always",
                     app_name
                 ]
             )
@@ -133,6 +179,8 @@ def install_app(app_name):
                     "--skipreview",
                     "--needed",
                     "--quiet",
+                    "--color",
+                    "always",
                     app_name
                 ]
             )
@@ -150,11 +198,13 @@ def pacman_install(app_list):
         open_terminal(
             [
                 "pkexec",
+                "yes | ",
                 "pacman",
                 "-S",
                 "--noconfirm",
                 "--needed",
                 "--quiet",
+                "--color always",
                 *app_list
             ]
         )
@@ -167,12 +217,14 @@ def paru_install(app_list):
     try:
         open_terminal(
             [
+                "yes | ",
                 "paru",
                 "-S",
                 "--noconfirm",
                 "--skipreview",
                 "--needed",
                 "--quiet",
+                "--color always",
                 *app_list
             ]
         )
@@ -216,7 +268,7 @@ def add_samba_drive(share_path, mount_point, username, password):
     try:
         script_path = Path(__file__).parent / "scripts" / "setup_samba.sh"
         subprocess.run(["pkexec", script_path, mount_point,
-                       share_path, cred_file], check=True)
+                        share_path, cred_file], check=True)
     except subprocess.CalledProcessError as e:
         print(f"Failed to setup Samba drive: {e}")
         return False

@@ -32,12 +32,22 @@ def main():
     args = parser.parse_args()
     file_path = Path(args.file)
 
-    if not file_path.exists():
-        print(f"File not found: {file_path}")
-        return
+    # Case 1: Path exists but is a directory → error
+    if file_path.exists() and file_path.is_dir():
+        raise IsADirectoryError(
+            f"Path is a directory, not a file: {file_path}")
 
+    # Case 2: File does not exist → create parents + file
+    if not file_path.exists():
+        try:
+            file_path.parent.mkdir(parents=True, exist_ok=True)
+            file_path.touch()
+        except Exception as e:
+            raise RuntimeError(f"Failed to create file '{file_path}': {e}")
+
+    # At this point, file_path is guaranteed to exist and be a file
     if args.arg2 is None:
-        # Only 2 arguments → write text
+        # Only 2 arguments → write/append text
         write_text(file_path, args.arg1)
     else:
         # 3 arguments → replace text

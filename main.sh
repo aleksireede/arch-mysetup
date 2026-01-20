@@ -12,11 +12,6 @@ sudo mkinitcpio -p linux
 plymouth-set-default-theme
 plymouth-set-default-theme --list
 
-sudo pacman -S --needed base-devel
-git clone https://aur.archlinux.org/paru.git
-cd paru
-makepkg -si
-
 sudo nano /etc/X11/xorg.conf.d/00-keyboard.conf
 Section "InputClass"
     Identifier "system-keyboard"
@@ -24,14 +19,8 @@ Section "InputClass"
     Option "XkbLayout" "fi"
 EndSection
 
-
-sudo systemctl enable syncthing@aleksi
-sudo systemctl start syncthing@aleksi
-git config --global credential.helper store
-
-sudo pacman -S python python-pip python-pyqt5 python-pyqt6 qt5-base qt5-xcb-private-headers libxcb
-export QT_PLUGIN_PATH=/usr/lib/qt/plugins
-export LD_BIND_NOW=1
+sudo systemctl enable syncthing@$USER
+sudo systemctl start syncthing@$USER
 
 hrtf audio in openal games
 nano ~/.alsoftrc
@@ -43,12 +32,10 @@ i2c_dev
 
 sudo cpupower frequency-set -g performance
 sudo systemctl enable --now cpupower.service
+sudo systemctl enable --now rustdesk
 sudo nano /etc/default/cpupower
 governor='performance'
 sudo systemctl restart cpupower
-
-#disable bluetooth profile auto switch
-wpctl settings --save bluetooth.autoswitch-to-headset-profile false
 
 pactl load-module module-raop-discover
 mkdir -p ~/.config/pipewire/pipewire.conf.d/
@@ -65,3 +52,7 @@ context.modules = [
         args = { }
     }
 ]
+
+if [ -f ~/.bash_extra ]; then
+. ~/.bash_extra
+fi
