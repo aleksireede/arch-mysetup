@@ -1,0 +1,810 @@
+- name: 7zip
+  description: Default description for 7zip
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: alsa-plugins
+  description: Default description for alsa-plugins
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: amd-ucode
+  description: Default description for amd-ucode
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: ananicy-cpp
+  description: Default description for ananicy-cpp
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: android-sdk-platform-tools
+  description: Default description for android-sdk-platform-tools
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: aocc
+  description: Default description for aocc
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: aocl-aocc
+  description: Default description for aocl-aocc
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: apple-fonts
+  description: Default description for apple-fonts
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: arch-update
+  description: Default description for arch-update
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: audio-convert
+  description: Default description for audio-convert
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: aur-sync-vote
+  description: Default description for aur-sync-vote
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: awesome-terminal-fonts
+  description: Default description for awesome-terminal-fonts
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: baobab
+  description: Default description for baobab
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: bind
+  description: Default description for bind
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: binwalk
+  description: Default description for binwalk
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: colordiff
+  description: Default description for colordiff
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: colorgcc
+  description: Default description for colorgcc
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: corectrl
+  description: Default description for corectrl
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: cowsay
+  description: Default description for cowsay
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: cpupower
+  description: Default description for cpupower
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: dos2unix
+  description: Default description for dos2unix
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: dosfstools
+  description: Default description for dosfstools
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: dream-background-remover
+  description: Default description for dream-background-remover
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: faudio
+  description: Default description for faudio
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: ffmpeg
+  description: Default description for ffmpeg
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: ffmpegthumbs
+  description: Default description for ffmpegthumbs
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: fontconfig
+  description: Default description for fontconfig
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: fortune-mod
+  description: Default description for fortune-mod
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: gamemode
+  description: Default description for gamemode
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: ghex
+  description: Default description for ghex
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: giflib
+  description: Default description for giflib
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: gimp
+  description: Default description for gimp
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: git
+  description: Default description for git
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: glfw
+  description: Default description for glfw
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: glow
+  description: Default description for glow
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: gnome-browser-connector
+  description: Default description for gnome-browser-connector
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: gnome-tweaks
+  description: Default description for gnome-tweaks
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: gnome-xcf-thumbnailer
+  description: Default description for gnome-xcf-thumbnailer
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: goverlay
+  description: Default description for goverlay
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: gst-plugin-va
+  description: Default description for gst-plugin-va
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: gst-plugins-bad
+  description: Default description for gst-plugins-bad
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: gst-plugins-base
+  description: Default description for gst-plugins-base
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: gst-plugins-base-libs
+  description: Default description for gst-plugins-base-libs
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: gst-plugins-good
+  description: Default description for gst-plugins-good
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: gstreamer
+  description: Default description for gstreamer
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: gvfs
+  description: Default description for gvfs
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: gvfs-afc
+  description: Default description for gvfs-afc
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: gvfs-google
+  description: Default description for gvfs-google
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: gvfs-gphoto2
+  description: Default description for gvfs-gphoto2
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: gvfs-mtp
+  description: Default description for gvfs-mtp
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: gvfs-smb
+  description: Default description for gvfs-smb
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: i2c-tools
+  description: Default description for i2c-tools
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: img2pdf
+  description: Default description for img2pdf
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: intellij-idea-community-edition-bin
+  description: Default description for intellij-idea-community-edition-bin
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: irqbalance
+  description: Default description for irqbalance
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: jdk-openjdk
+  description: Default description for jdk-openjdk
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: keepassxc
+  description: Default description for keepassxc
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: lact
+  description: Default description for lact
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: less
+  description: Default description for less
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: lib32-alsa-plugins
+  description: Default description for lib32-alsa-plugins
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: lib32-fontconfig
+  description: Default description for lib32-fontconfig
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: lib32-gamemode
+  description: Default description for lib32-gamemode
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: lib32-giflib
+  description: Default description for lib32-giflib
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: lib32-gst-plugins-base
+  description: Default description for lib32-gst-plugins-base
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: lib32-gst-plugins-base-libs
+  description: Default description for lib32-gst-plugins-base-libs
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: lib32-gst-plugins-good
+  description: Default description for lib32-gst-plugins-good
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: lib32-gstreamer
+  description: Default description for lib32-gstreamer
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: lib32-libdecor
+  description: Default description for lib32-libdecor
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: lib32-libjpeg-turbo
+  description: Default description for lib32-libjpeg-turbo
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: lib32-libva
+  description: Default description for lib32-libva
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: lib32-mangohud
+  description: Default description for lib32-mangohud
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: lib32-mesa
+  description: Default description for lib32-mesa
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: lib32-mpg123
+  description: Default description for lib32-mpg123
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: lib32-openal
+  description: Default description for lib32-openal
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: lib32-pipewire
+  description: Default description for lib32-pipewire
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: lib32-pipewire-jack
+  description: Default description for lib32-pipewire-jack
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: lib32-vulkan-mesa-layers
+  description: Default description for lib32-vulkan-mesa-layers
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: lib32-vulkan-radeon
+  description: Default description for lib32-vulkan-radeon
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: libjpeg-turbo
+  description: Default description for libjpeg-turbo
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: libreoffice-fresh
+  description: Default description for libreoffice-fresh
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: libva-git
+  description: Default description for libva-git
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: linux-firmware-amdgpu
+  description: Default description for linux-firmware-amdgpu
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: linux-zen
+  description: Default description for linux-zen
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: linux-zen-headers
+  description: Default description for linux-zen-headers
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: lm_sensors
+  description: Default description for lm_sensors
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: localsend-bin
+  description: Default description for localsend-bin
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: lolcat
+  description: Default description for lolcat
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: lsd
+  description: Default description for lsd
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: lsp-plugins
+  description: Default description for lsp-plugins
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: lutris
+  description: Default description for lutris
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: makemkv
+  description: Default description for makemkv
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: makepkg-optimize-mold
+  description: Default description for makepkg-optimize-mold
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: man-pages-fi
+  description: Default description for man-pages-fi
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: mangohud
+  description: Default description for mangohud
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: mcpelauncher-linux
+  description: Default description for mcpelauncher-linux
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: mcpelauncher-ui
+  description: Default description for mcpelauncher-ui
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: memavaild
+  description: Default description for memavaild
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: mesa
+  description: Default description for mesa
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: mesa-utils
+  description: Default description for mesa-utils
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: mission-center
+  description: Default description for mission-center
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: mpg123
+  description: Default description for mpg123
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: nautilus-dropbox
+  description: Default description for nautilus-dropbox
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: nautilus-image-converter
+  description: Default description for nautilus-image-converter
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: neofetch
+  description: Default description for neofetch
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: net-tools
+  description: Default description for net-tools
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: noto-fonts
+  description: Default description for noto-fonts
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: noto-fonts-cjk
+  description: Default description for noto-fonts-cjk
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: noto-fonts-extra
+  description: Default description for noto-fonts-extra
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: ntfs-3g
+  description: Default description for ntfs-3g
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: ocs-url
+  description: Default description for ocs-url
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: oh-my-bash-git
+  description: Default description for oh-my-bash-git
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: openal
+  description: Default description for openal
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: openrgb
+  description: Default description for openrgb
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: opera
+  description: Default description for opera
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: oreo-cursors-bin
+  description: Default description for oreo-cursors-bin
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: pipewire
+  description: Default description for pipewire
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: pipewire-alsa
+  description: Default description for pipewire-alsa
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: pipewire-audio
+  description: Default description for pipewire-audio
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: pipewire-jack
+  description: Default description for pipewire-jack
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: pipewire-pulse
+  description: Default description for pipewire-pulse
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: pipewire-v4l2
+  description: Default description for pipewire-v4l2
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: pipewire-zeroconf
+  description: Default description for pipewire-zeroconf
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: png2svg
+  description: Default description for png2svg
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: preload
+  description: Default description for preload
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: prismlauncher
+  description: Default description for prismlauncher
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: protonup-qt
+  description: Default description for protonup-qt
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: pwvucontrol
+  description: Default description for pwvucontrol
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: pycharm
+  description: Default description for pycharm
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: python-glfw
+  description: Default description for python-glfw
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: python-pip
+  description: Default description for python-pip
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: python-pyqt5
+  description: Default description for python-pyqt5
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: python-pyqt6
+  description: Default description for python-pyqt6
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: qbittorrent
+  description: Default description for qbittorrent
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: rar
+  description: Default description for rar
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: rclone-browser
+  description: Default description for rclone-browser
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: reflector
+  description: Default description for reflector
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: rustdesk-bin
+  description: Default description for rustdesk-bin
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: scx-scheds
+  description: Default description for scx-scheds
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: snapchat
+  description: Default description for snapchat
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: snitch-bin
+  description: Default description for snitch-bin
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: sshpilot
+  description: Default description for sshpilot
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: steam
+  description: Default description for steam
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: syncthing-bin
+  description: Default description for syncthing-bin
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: telegram-desktop
+  description: Default description for telegram-desktop
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: tidal-hifi-bin
+  description: Default description for tidal-hifi-bin
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: ttf-ms-fonts
+  description: Default description for ttf-ms-fonts
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: unrar
+  description: Default description for unrar
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: uresourced
+  description: Default description for uresourced
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: vesktop-bin
+  description: Default description for vesktop-bin
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: visual-studio-code-electron-bin
+  description: Default description for visual-studio-code-electron-bin
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: vkbasalt
+  description: Default description for vkbasalt
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: vlc
+  description: Default description for vlc
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: vlc-plugins-all
+  description: Default description for vlc-plugins-all
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: vulkan-mesa-layers
+  description: Default description for vulkan-mesa-layers
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: vulkan-radeon
+  description: Default description for vulkan-radeon
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: vulkan-tools
+  description: Default description for vulkan-tools
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: wireplumber
+  description: Default description for wireplumber
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: xdg-ninja
+  description: Default description for xdg-ninja
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: xpadneo-dkms
+  description: Default description for xpadneo-dkms
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: zapzap
+  description: Default description for zapzap
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: zenpower3-dkms
+  description: Default description for zenpower3-dkms
+  source: Unknown
+  category: Utilities
+  conflicts: []
+- name: zfs-dkms
+  description: Default description for zfs-dkms
+  source: Unknown
+  category: Utilities
+  conflicts: []

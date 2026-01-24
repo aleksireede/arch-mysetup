@@ -1,4 +1,3 @@
-import json
 import subprocess
 import sys
 
@@ -9,9 +8,9 @@ from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QHBoxLayout, QWidget, QPus
 from gui.remove_app_dialog import RemoveAppDialog
 
 sys.path.append("programs")
+from programs.apps_file import load_apps_from_file, add_app_to_yaml, remove_app_from_yaml
 from programs.installer_logic import (
-    load_apps_from_json, is_app_installed, install_app, check_if_installed, detect_install_method, pacman_install,
-    paru_install
+    is_app_installed, detect_install_method, app_install, command_exists
 )
 
 
@@ -34,7 +33,7 @@ class ArchAppInstaller(QMainWindow):
         self.setup_window = setup_window  # Store the reference
         self.setWindowTitle("Arch App Installer")
         self.setGeometry(100, 100, 500, 400)
-        self.apps = load_apps_from_json()
+        self.apps = load_apps_from_file()
         self.selected_apps = []
         self.init_ui()
 
@@ -103,10 +102,6 @@ class ArchAppInstaller(QMainWindow):
 
         self.central_widget.setLayout(self.main_layout)
 
-    def go_back_to_setup(self):
-        self.setup_window.show()  # Show the setup window
-        self.hide()  # Hide the current window
-
     def remove_apps(self):
         if not self.apps:
             QMessageBox.information(
@@ -125,8 +120,7 @@ class ArchAppInstaller(QMainWindow):
 
             # Save changes
             self.apps.sort()
-            with open("apps.json", "w") as f:
-                json.dump(self.apps, f)
+            remove_app_from_yaml(item)
 
             # Refresh UI
             self.refresh_app_list()
@@ -156,7 +150,7 @@ class ArchAppInstaller(QMainWindow):
                 self.list_widget.addItem(item)
 
     def add_apps(self):
-        """Open a dialog to add new Apps to the JSON file, checking availability first."""
+        """Open a dialog to add new Apps to the YAML file, checking availability first."""
         new_app, ok = QInputDialog.getText(
             self, "Add Application", "Enter application name:"
         )
@@ -176,7 +170,7 @@ class ArchAppInstaller(QMainWindow):
             except subprocess.CalledProcessError:
                 pass
 
-            if check_if_installed("paru"):
+            if command_exists("paru"):
                 try:
                     subprocess.run(
                         ["paru", "-Si", new_app],
@@ -191,13 +185,9 @@ class ArchAppInstaller(QMainWindow):
                 # QMessageBox.information(self, "Available", msg)
                 self.apps.append(new_app)
                 self.apps.sort()
-                with open("apps.json", "w") as f:
-                    import json
-                    json.dump(self.apps, f)
+                add_app_to_yaml(new_app)
                 QMessageBox.information(
                     self, "Success", msg + f"\nAdded {new_app} to the list!")
-                # 🔥 Reload apps from disk, then refresh UI
-                self.apps = load_apps_from_json()
                 self.refresh_app_list()
             else:
                 QMessageBox.warning(
@@ -229,7 +219,7 @@ class ArchAppInstaller(QMainWindow):
                 f"Do you want to install the following apps?\n{', '.join(selected_apps)}",
                 QMessageBox.Yes | QMessageBox.No
             )
-
+            # separate packages into aur and pacman list
             if confirm == QMessageBox.Yes:
                 if len(selected_apps) > 1:
                     pacman_list = []
@@ -243,12 +233,13 @@ class ArchAppInstaller(QMainWindow):
                             pacman_list.append(app)
                     # check that the lists are not empty
                     if pacman_list:
-                        pacman_install(pacman_list)
+                        app_install(pacman_list, "pacman")
                     if paru_list:
-                        paru_install(paru_list)
+                        app_install(paru_list, "paru")
                 else:
                     for app in selected_apps:
-                        install_app(app)
+                        method = detect_install_method(app)
+                        app_install(app, method)
         else:
             QMessageBox.warning(self, "No Selection",
                                 "No apps selected for installation.")

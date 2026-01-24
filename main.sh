@@ -45,6 +45,7 @@ context.modules = [
     args = { }
 }
 ]
+sudo reflector --country Finland --latest 5 --protocol http --protocol https --sort rate --save /etc/pacman.d/mirrorlist
 nano ~/.config/pipewire/pipewire.conf.d/raop-discover.conf
 context.modules = [
     {

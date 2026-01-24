@@ -7,23 +7,31 @@ from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QWidget, QPushButton, QLab
     QInputDialog, QLineEdit, QSizePolicy
 
 sys.path.append("programs")
-from programs.installer_logic import install_paru, check_if_installed, add_samba_drive
+from programs.installer_logic import install_paru, add_samba_drive, command_exists
 
 
 class SetupWindow(QMainWindow):
     open_installer = pyqtSignal()  # Signal to open the installer
+    open_uninstaller = pyqtSignal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.proceed_button = None
+        # Buttons
+        self.install_button = None
+        self.remove_button = None
         self.add_network_drive_button = None
         self.install_paru_button = None
+        # end buttons
         self.paru_status = None
         self.paru_label = None
+        # layout horizontal or vertical
         self.paru_layout = None
         self.layout = None
+        # todo: explain widget
         self.central_widget = None
-        self.setWindowTitle("Setup: Install Paru & Flatpak")
+        # Set the window title text
+        self.setWindowTitle("Setup: Install Paru")
+        # set window size
         self.setGeometry(100, 100, 400, 300)
         self.init_ui()
 
@@ -51,18 +59,23 @@ class SetupWindow(QMainWindow):
         self.add_network_drive_button.clicked.connect(self.add_network_drive)
 
         # Install apps button
-        self.proceed_button = QPushButton("Install apps")
-        self.proceed_button.clicked.connect(self.open_installer.emit)
+        self.install_button = QPushButton("Install apps")
+        self.install_button.clicked.connect(self.open_installer.emit)
+
+        # Uninstall apps button
+        self.remove_button = QPushButton("Uninstall")
+        self.remove_button.clicked.connect(self.open_uninstaller.emit)
 
         # Set size policies for buttons
         self.install_paru_button.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         self.add_network_drive_button.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        self.proceed_button.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        self.install_button.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
 
         # Add to main layout with stretch
         self.layout.addLayout(self.paru_layout)
         self.layout.addSpacing(20)
-        self.layout.addWidget(self.proceed_button)
+        self.layout.addWidget(self.install_button)
+        self.layout.addWidget(self.remove_button)
         self.layout.addWidget(self.add_network_drive_button)
         self.layout.addSpacing(20)
 
@@ -73,7 +86,7 @@ class SetupWindow(QMainWindow):
         checkmark_path = Path(Path(__file__).parent.parent.resolve()).joinpath("icons/checkmark.svg")
         red_x_path = Path(Path(__file__).parent.parent.resolve()).joinpath("icons/red_x.svg")
         """Update the Paru status icon or text."""
-        if check_if_installed("paru"):
+        if command_exists("paru"):
             self.paru_status.setPixmap(QPixmap(str(checkmark_path)).scaled(20, 20))
             self.install_paru_button.setText("Installed")
         else:
@@ -81,7 +94,7 @@ class SetupWindow(QMainWindow):
 
     def handle_install_paru(self):
         print(install_paru())
-        if check_if_installed("paru"):
+        if command_exists("paru"):
             QMessageBox.information(self, "Installed", "Paru is already installed!")
         else:
             if install_paru():
