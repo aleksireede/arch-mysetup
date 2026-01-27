@@ -12,15 +12,7 @@ sudo mkinitcpio -p linux
 plymouth-set-default-theme
 plymouth-set-default-theme --list
 
-sudo nano /etc/X11/xorg.conf.d/00-keyboard.conf
-Section "InputClass"
-    Identifier "system-keyboard"
-    MatchIsKeyboard "on"
-    Option "XkbLayout" "fi"
-EndSection
-
-sudo systemctl enable syncthing@$USER
-sudo systemctl start syncthing@$USER
+sudo systemctl enable --now syncthing@$USER
 
 hrtf audio in openal games
 nano ~/.alsoftrc
@@ -33,27 +25,7 @@ i2c_dev
 sudo cpupower frequency-set -g performance
 sudo systemctl enable --now cpupower.service
 sudo systemctl enable --now rustdesk
+
 sudo nano /etc/default/cpupower
 governor='performance'
 sudo systemctl restart cpupower
-
-pactl load-module module-raop-discover
-mkdir -p ~/.config/pipewire/pipewire.conf.d/
-nano ~/.config/pipewire/pipewire.conf.d/my-zeroconf-discover.conf
-context.modules = [
-{   name = libpipewire-module-zeroconf-discover
-    args = { }
-}
-]
-sudo reflector --country Finland --latest 5 --protocol http --protocol https --sort rate --save /etc/pacman.d/mirrorlist
-nano ~/.config/pipewire/pipewire.conf.d/raop-discover.conf
-context.modules = [
-    {
-        name = libpipewire-module-raop-discover
-        args = { }
-    }
-]
-
-if [ -f ~/.bash_extra ]; then
-. ~/.bash_extra
-fi

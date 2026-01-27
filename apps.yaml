@@ -523,6 +523,11 @@
   source: Unknown
   category: Utilities
   conflicts: []
+- name: nmap
+  description: Default description for nmap
+  source: pacman
+  category: Utilities
+  conflicts: []
 - name: noto-fonts
   description: Default description for noto-fonts
   source: Unknown
@@ -678,6 +683,11 @@
   source: Unknown
   category: Utilities
   conflicts: []
+- name: rpi-imager
+  description: Default description for rpi-imager
+  source: pacman
+  category: Utilities
+  conflicts: []
 - name: rustdesk-bin
   description: Default description for rustdesk-bin
   source: Unknown
@@ -796,6 +806,11 @@
 - name: zapzap
   description: Default description for zapzap
   source: Unknown
+  category: Utilities
+  conflicts: []
+- name: zenmap
+  description: Default description for zenmap
+  source: pacman
   category: Utilities
   conflicts: []
 - name: zenpower3-dkms
