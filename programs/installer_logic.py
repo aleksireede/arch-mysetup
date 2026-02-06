@@ -144,14 +144,12 @@ def open_terminal(command):
 
 
 def app_install(apps, command: str):
-    install_command = []
     if command == "paru":
-        install_command.extend(["paru", "-S", "--skipreview", ])
+        install_command= ["paru", "-S", "--skipreview", "--needed", "--quiet", "--color", "always"]
+        apps_helper(apps, install_command)
     elif command == "pacman":
-        install_command.extend(["pkexec", "pacman", "-S"])
-    install_command.extend(["--needed", "--quiet", "--color", "always"])
-    apps_helper(apps, install_command)
-
+        install_command = ["pkexec", "pacman", "-S", "--needed", "--quiet", "--color", "always"]
+        apps_helper(apps, install_command)
 
 def remove_apps(apps, command: str):
     remove_command = []
