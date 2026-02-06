@@ -3,6 +3,7 @@ import subprocess
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QListWidget, QPushButton, QMessageBox, QInputDialog, QHBoxLayout
 
+from programs.apps_file import remove_app_from_yaml, add_app_to_yaml
 from programs.installer_logic import command_exists
 
 
@@ -69,7 +70,12 @@ class AppListEditorDialog(QDialog):
         if confirm == QMessageBox.Yes:
             # remove from variable and the visible list then sort it
             self.apps.remove(item.text())
-            self.list_widget.removeItem(item.text())
+            current_row = self.list_widget.currentRow()
+            if current_row >= 0:  # Check if an item is selected
+                self.list_widget.takeItem(current_row)
+            # :todo fix yaml remove
+            remove_app_from_yaml(item.text())
+
             self.list_widget.sortItems()
 
     def add_apps(self):
@@ -107,6 +113,7 @@ class AppListEditorDialog(QDialog):
                 msg = f"{new_app} is available in: {', '.join(available_in)}"
                 # add item to variable and sort it and then add it to the visible list and sort that too
                 self.apps.append(new_app)
+                add_app_to_yaml(new_app)
                 self.apps.sort()
                 self.list_widget.addItem(new_app)
                 self.list_widget.sortItems()
