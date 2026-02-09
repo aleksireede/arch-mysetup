@@ -7,8 +7,11 @@ from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QWidget, QPushButton, QLabel, QHBoxLayout, QMessageBox, \
     QInputDialog, QLineEdit, QSizePolicy
 
-parent_dir = str(Path(__file__).resolve().parent.parent.joinpath("programs"))
-sys.path.append(parent_dir)
+programs_dir = str(Path(__file__).resolve().parent.parent.joinpath("programs"))
+sys.path.append(programs_dir)
+
+scripts_dir = str(Path(__file__).resolve().parent.parent.joinpath("scripts"))
+sys.path.append(scripts_dir)
 
 from detect_gpu import detect_gpu_vendor, install_drivers
 from installer_logic import install_paru, add_samba_drive, command_exists

@@ -188,6 +188,11 @@
   source: Unknown
   category: Utilities
   conflicts: []
+- name: google-chrome
+  description: Default description for google-chrome
+  source: paru
+  category: Utilities
+  conflicts: []
 - name: goverlay
   description: Default description for goverlay
   source: Unknown

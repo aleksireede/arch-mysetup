@@ -1,13 +1,15 @@
 import sys
 from pathlib import Path
 
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QHBoxLayout, QWidget, QPushButton, QListWidget, QListWidgetItem, \
-    QMessageBox, QLabel, QFrame
 from PyQt5.QtCore import Qt, QThread, pyqtSignal, QObject
+from PyQt5.QtWidgets import QFrame
 from PyQt5.QtWidgets import (
     QMainWindow, QVBoxLayout, QHBoxLayout, QWidget, QPushButton,
     QListWidget, QListWidgetItem, QMessageBox, QLabel
+)
+from apps_file import load_apps_from_file
+from installer_logic import (
+    is_app_installed, detect_install_method, app_install
 )
 
 from applist_editor_dialog import AppListEditorDialog
@@ -15,38 +17,27 @@ from applist_editor_dialog import AppListEditorDialog
 parent_dir = str(Path(__file__).resolve().parent.parent.joinpath("programs"))
 sys.path.append(parent_dir)
 
-from apps_file import load_apps_from_file
-from installer_logic import (
-    is_app_installed, detect_install_method, app_install
-)
 
-class AppLoaderWorker(QObject):
-    finished = pyqtSignal(list)
+class AppManagerWorker(QObject):
+    finished = pyqtSignal(list, list) # Returns (all_apps, uninstalled_apps)
     error = pyqtSignal(str)
 
-    def load_apps(self):
+    def run(self):
         try:
-            apps = load_apps_from_file()
-            self.finished.emit(apps)
+            # 1. Get the full list from the file
+            all_apps = load_apps_from_file()
+            # 2. Filter for what's actually missing
+            uninstalled = [app for app in all_apps if not is_app_installed(app)]
+            # 3. Return both so the UI knows the full list AND the display list
+            self.finished.emit(all_apps, uninstalled)
         except Exception as e:
             self.error.emit(str(e))
 
-class AppCheckWorker(QObject):
-    finished = pyqtSignal(list)
-
-    def __init__(self, apps):
-        super().__init__()
-        self.apps = apps
-
-    def run(self):
-        uninstalled_apps = [
-            app for app in self.apps if not is_app_installed(app)
-        ]
-        self.finished.emit(uninstalled_apps)
 
 class ArchAppInstaller(QMainWindow):
     def __init__(self, setup_window):
         super().__init__()
+        self.thread = None
         self.worker = None
         self.refresh_button = None
         self.install_button = None
@@ -60,7 +51,6 @@ class ArchAppInstaller(QMainWindow):
         self.secondary_layout = None
         self.main_layout = None
         self.central_widget = None
-        self.thread = None
         self.setup_window = setup_window
         self.setWindowTitle("Arch App Installer")
         self.setGeometry(100, 100, 500, 400)
@@ -88,16 +78,17 @@ class ArchAppInstaller(QMainWindow):
         # Add Apps to the list
         self.refresh_app_list()
 
-        ## BEGIN Custom Back Button
+        # BEGIN Custom Back Button
         self.back_button_container = QFrame()
         self.back_button_container.setFixedSize(150, 45)
 
         self.frame_layout = QHBoxLayout(self.back_button_container)
         self.frame_layout.setContentsMargins(10, 0, 10, 0)
-        self.frame_layout.setSpacing(5) # Small gap between arrow and text
+        self.frame_layout.setSpacing(5)  # Small gap between arrow and text
 
         # Remove the large manual spacing and stretch if you want them centered
-        self.frame_layout.setAlignment(Qt.AlignCenter) # Keeps group in the middle
+        self.frame_layout.setAlignment(
+            Qt.AlignCenter)  # Keeps group in the middle
         self.back_button_container.setStyleSheet("""
             QFrame {
                 background-color: #991212;
@@ -113,20 +104,20 @@ class ArchAppInstaller(QMainWindow):
                 border: none;
             }
             """)
-        
-        self.back_btn = QPushButton("←") # Using an icon or arrow
+
+        self.back_btn = QPushButton("←")  # Using an icon or arrow
         self.back_lbl = QLabel("Back")
-        
+
         # Layout
         self.frame_layout.addWidget(self.back_btn)
         self.frame_layout.addSpacing(20)
         self.frame_layout.addWidget(self.back_lbl)
         self.frame_layout.addStretch()
-        
+
         # Button press
         self.back_button_container.mousePressEvent = lambda event: self.go_back_to_setup()
         self.back_btn.clicked.connect(self.go_back_to_setup)
-        ## END Back Button
+        # END Back Button
 
         # Buttons
         self.app_editor_btn = QPushButton("App List Editor")
@@ -165,75 +156,97 @@ class ArchAppInstaller(QMainWindow):
         self.central_widget.setLayout(self.main_layout)
 
     def load_apps_async(self):
+        if self.thread and self.thread.isRunning():
+            return
+
         self.loading_label.show()
-        self.list_widget.clear()
+        self.loading_label.setText("Syncing app list...")
 
         self.thread = QThread()
-        self.worker = AppLoaderWorker()
-        self.worker.moveToThread(self.thread)
-
-        self.thread.started.connect(self.worker.load_apps)
-        self.worker.finished.connect(self.on_apps_loaded)
-        self.worker.finished.connect(self.thread.quit)
-        self.worker.finished.connect(self.worker.deleteLater)
-        self.thread.finished.connect(self.thread.deleteLater)
-        self.worker.error.connect(self.on_error)
-
-        self.thread.start()
-
-    def on_apps_loaded(self, apps):
-        self.apps = apps
-        self.refresh_app_list()
-        self.loading_label.hide()
-
-    def on_error(self, error_message):
-        QMessageBox.critical(self, "Error", f"Failed to load apps: {error_message}")
-        self.loading_label.hide()
-
-    def refresh_app_list(self):
-        self.list_widget.clear()
-        loading_item = QListWidgetItem("Loading apps...")
-        loading_item.setFlags(loading_item.flags() & ~Qt.ItemFlag.ItemIsSelectable & ~Qt.ItemFlag.ItemIsUserCheckable)
-        self.list_widget.addItem(loading_item)
-
-        # Stop the existing thread if it is running
-        if hasattr(self, 'thread') and self.thread.isRunning():
-            self.thread.quit()
-            self.thread.wait()
-
-        # Create a new thread and worker for the refresh operation
-        self.thread = QThread()
-        self.worker = AppCheckWorker(self.apps)
+        self.worker = AppManagerWorker()
         self.worker.moveToThread(self.thread)
 
         self.thread.started.connect(self.worker.run)
+
+        # Connect to the final UI updater
+        self.worker.finished.connect(self.update_ui_with_apps)
+        self.worker.error.connect(self.on_error)
+
+        # Standard Cleanup
+        self.worker.finished.connect(self.thread.quit)
+        self.worker.finished.connect(self.worker.deleteLater)
+        self.thread.finished.connect(self.thread.deleteLater)
+        self.thread.finished.connect(self.cleanup_thread)
+
+        self.thread.start()
+
+    def cleanup_thread(self):
+        self.thread = None
+        self.worker = None
+
+    def on_apps_loaded(self, apps):
+        self.apps = apps
+
+        # SAFETY: Ensure the 'loading' thread is fully dead before starting 'check' thread
+        if self.thread and self.thread.isRunning():
+            self.thread.quit()
+            self.thread.wait()
+
+        self.loading_label.setText("Checking installation status...")
+
+        self.thread = QThread()
+        self.worker = AppManagerWorker(self.apps)
+        self.worker.moveToThread(self.thread)
+
+        self.thread.started.connect(self.worker.run)
+        # Don't forget this connection!
         self.worker.finished.connect(self.on_apps_checked)
         self.worker.finished.connect(self.thread.quit)
         self.worker.finished.connect(self.worker.deleteLater)
         self.thread.finished.connect(self.thread.deleteLater)
+        self.thread.finished.connect(self.cleanup_thread)
 
         self.thread.start()
 
+    def on_error(self, error_message):
+        QMessageBox.critical(
+            self, "Error", f"Failed to load apps: {error_message}")
+        self.loading_label.hide()
+
+    def refresh_app_list(self):
+        """Only handles UI state before/during the check"""
+        self.list_widget.clear()
+        loading_item = QListWidgetItem("Checking system for installed apps...")
+        loading_item.setFlags(loading_item.flags() & ~
+        Qt.ItemFlag.ItemIsSelectable)
+        self.list_widget.addItem(loading_item)
+        # Don't start a thread here; let load_apps_async handle it.
+
     def closeEvent(self, event):
-        if hasattr(self, 'thread') and self.thread.isRunning():
+        if self.thread and self.thread.isRunning():
+            # 1. Ask the thread to stop
             self.thread.quit()
-            self.thread.wait()
+            # 2. Block the UI for a moment to let it finish safely
+            if not self.thread.wait(3000):  # Wait up to 3 seconds
+                print("Thread timed out, terminating...")
+                self.thread.terminate()
         event.accept()
 
     def on_apps_checked(self, uninstalled_apps):
+        # Hide loading UI
+        self.loading_label.hide()
+
         self.list_widget.clear()
         if not uninstalled_apps:
             item = QListWidgetItem("All apps installed!")
-            item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsSelectable & ~Qt.ItemFlag.ItemIsUserCheckable)
+            item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsSelectable)
             self.list_widget.addItem(item)
         else:
             for app in uninstalled_apps:
                 item = QListWidgetItem(app)
                 item.setFlags(item.flags() | Qt.ItemFlag.ItemIsUserCheckable)
-                if app in self.selected_apps:
-                    item.setCheckState(Qt.CheckState.Checked)
-                else:
-                    item.setCheckState(Qt.CheckState.Unchecked)
+                item.setCheckState(
+                    Qt.CheckState.Checked if app in self.selected_apps else Qt.CheckState.Unchecked)
                 self.list_widget.addItem(item)
 
     def toggle_select_all_apps(self):
@@ -245,7 +258,8 @@ class ArchAppInstaller(QMainWindow):
         for i in range(self.list_widget.count()):
             item = self.list_widget.item(i)
             if item.flags() & Qt.ItemFlag.ItemIsUserCheckable:
-                item.setCheckState(Qt.CheckState.Unchecked if all_selected else Qt.CheckState.Checked)
+                item.setCheckState(
+                    Qt.CheckState.Unchecked if all_selected else Qt.CheckState.Checked)
 
     def install_selected(self):
         selected_apps = []
@@ -279,8 +293,28 @@ class ArchAppInstaller(QMainWindow):
                         method = detect_install_method(app)
                         app_install(app, method)
         else:
-            QMessageBox.warning(self, "No Selection", "No apps selected for installation.")
+            QMessageBox.warning(self, "No Selection",
+                                "No apps selected for installation.")
         self.load_apps_async()
+
+    def update_ui_with_apps(self, all_apps, uninstalled_apps):
+        """The single point of entry for your UI data"""
+        self.apps = all_apps  # Keep the master list for the editor
+        self.loading_label.hide()
+        self.list_widget.clear()
+
+        if not uninstalled_apps:
+            item = QListWidgetItem("All apps are currently installed!")
+            item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsSelectable)
+            self.list_widget.addItem(item)
+        else:
+            for app in uninstalled_apps:
+                item = QListWidgetItem(app)
+                item.setFlags(item.flags() | Qt.ItemFlag.ItemIsUserCheckable)
+                # Check if it was previously selected
+                state = Qt.Checked if app in self.selected_apps else Qt.Unchecked
+                item.setCheckState(state)
+                self.list_widget.addItem(item)
 
     def app_list_editor_dialog(self):
         dialog = AppListEditorDialog(self, self.apps)

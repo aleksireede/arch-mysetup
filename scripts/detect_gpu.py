@@ -1,6 +1,11 @@
 import subprocess
+import sys
+from pathlib import Path
 
-from programs.installer_logic import open_terminal
+parent_dir = str(Path(__file__).resolve().parent.parent.joinpath("gui"))
+sys.path.append(parent_dir)
+
+from installer_logic import open_terminal
 
 
 def detect_gpu_vendor():
