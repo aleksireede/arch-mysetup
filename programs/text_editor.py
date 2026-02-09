@@ -1,7 +1,11 @@
 import subprocess
+import sys
 from pathlib import Path
 
-from scripts.text_writer import write_text
+parent_dir = str(Path(__file__).resolve().parent.parent.joinpath("scripts"))
+sys.path.append(parent_dir)
+
+from text_writer import write_text
 
 # Arch / Pacman config
 pacman_conf = Path(r"/etc/pacman.conf")

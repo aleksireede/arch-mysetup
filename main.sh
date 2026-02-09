@@ -1,5 +1,3 @@
-
-#post install
 sudo pacman -Suy
 sudo nano /etc/locale.gen
 sudo locale-gen
@@ -21,11 +19,3 @@ hrtf = true
 smbus i2c for openrgb
 sudo nano /etc/modules-load.d/i2c-dev.conf
 i2c_dev
-
-sudo cpupower frequency-set -g performance
-sudo systemctl enable --now cpupower.service
-sudo systemctl enable --now rustdesk
-
-sudo nano /etc/default/cpupower
-governor='performance'
-sudo systemctl restart cpupower

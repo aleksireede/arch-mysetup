@@ -1,8 +1,11 @@
 from pathlib import Path
-
+import sys
 import yaml
 
-from programs.installer_logic import detect_install_method
+parent_dir = str(Path(__file__).resolve().parent.parent.joinpath("programs"))
+sys.path.append(parent_dir)
+
+from installer_logic import detect_install_method
 
 yaml_path = Path(__file__).parent.parent.resolve().joinpath("apps.yaml")
 

@@ -1,14 +1,17 @@
 import sys
+from pathlib import Path
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QHBoxLayout, QWidget, QPushButton, QListWidget, QListWidgetItem, \
-    QMessageBox
+    QMessageBox, QLabel, QFrame
 
-from gui.applist_editor_dialog import AppListEditorDialog
+from applist_editor_dialog import AppListEditorDialog
 
-sys.path.append("programs")
-from programs.apps_file import load_apps_from_file
-from programs.installer_logic import (
+parent_dir = str(Path(__file__).resolve().parent.parent.joinpath("programs"))
+sys.path.append(parent_dir)
+
+from apps_file import load_apps_from_file
+from installer_logic import (
     is_app_installed, detect_install_method, app_install
 )
 
@@ -49,10 +52,45 @@ class ArchAppInstaller(QMainWindow):
         # Add Apps to the list
         self.refresh_app_list()
 
-        # Add a back button
-        self.back_button = QPushButton("Back")
-        self.back_button.clicked.connect(self.go_back_to_setup)
-        self.back_button.setFixedWidth(100)
+        ## BEGIN Custom Back Button
+        self.back_button_container = QFrame()
+        self.back_button_container.setFixedSize(150, 45)
+
+        self.frame_layout = QHBoxLayout(self.back_button_container)
+        self.frame_layout.setContentsMargins(10, 0, 10, 0)
+        self.frame_layout.setSpacing(5) # Small gap between arrow and text
+
+        # Remove the large manual spacing and stretch if you want them centered
+        self.frame_layout.setAlignment(Qt.AlignCenter) # Keeps group in the middle
+        self.back_button_container.setStyleSheet("""
+            QFrame {
+                background-color: #991212;
+                border-radius: 5px;
+            }
+            QFrame:hover {
+                background-color: #ba1616; /* Lighter red on hover */
+            }
+            QLabel, QPushButton {
+                background-color: transparent; /* Makes children take Frame's color */
+                color: white;
+                font-weight: bold;
+                border: none;
+            }
+            """)
+        
+        self.back_btn = QPushButton("←") # Using an icon or arrow
+        self.back_lbl = QLabel("Back")
+        
+        # Layout
+        self.frame_layout.addWidget(self.back_btn)
+        self.frame_layout.addSpacing(20)
+        self.frame_layout.addWidget(self.back_lbl)
+        self.frame_layout.addStretch()
+        
+        # Button press
+        self.back_button_container.mousePressEvent = lambda event: self.go_back_to_setup()
+        self.back_btn.clicked.connect(self.go_back_to_setup)
+        ## END Back Button
 
         # Buttons
         self.app_editor_btn = QPushButton("App List Editor")
@@ -69,7 +107,7 @@ class ArchAppInstaller(QMainWindow):
         self.refresh_button.clicked.connect(self.refresh_app_list)
 
         # second layout
-        self.secondary_layout.addWidget(self.back_button)
+        self.secondary_layout.addWidget(self.back_button_container)
         self.secondary_layout.addStretch(1)
         self.secondary_layout.addWidget(self.app_editor_btn)
         self.secondary_layout.addStretch(2)

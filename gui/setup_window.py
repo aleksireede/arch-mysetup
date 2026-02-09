@@ -6,13 +6,16 @@ from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QWidget, QPushButton, QLabel, QHBoxLayout, QMessageBox, \
     QInputDialog, QLineEdit, QSizePolicy
 
-sys.path.append("programs")
-from programs.installer_logic import install_paru, add_samba_drive, command_exists
+parent_dir = str(Path(__file__).resolve().parent.parent.joinpath("programs"))
+sys.path.append(parent_dir)
+
+from installer_logic import install_paru, add_samba_drive, command_exists
 
 
 class SetupWindow(QMainWindow):
     open_installer = pyqtSignal()  # Signal to open the installer
     open_uninstaller = pyqtSignal()
+    open_tweaks = pyqtSignal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -65,6 +68,9 @@ class SetupWindow(QMainWindow):
         # Uninstall apps button
         self.remove_button = QPushButton("Uninstall")
         self.remove_button.clicked.connect(self.open_uninstaller.emit)
+        
+        self.tweak_btn = QPushButton("Tweaks")
+        self.tweak_btn.clicked.connect(self.open_tweaks.emit)
 
         # Set size policies for buttons
         self.install_paru_button.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
@@ -77,6 +83,7 @@ class SetupWindow(QMainWindow):
         self.layout.addWidget(self.install_button)
         self.layout.addWidget(self.remove_button)
         self.layout.addWidget(self.add_network_drive_button)
+        self.layout.addWidget(self.tweak_btn)
         self.layout.addSpacing(20)
 
         # Allow window to resize

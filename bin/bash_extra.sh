@@ -9,6 +9,7 @@ alias mnt="mount | awk -F' ' '{ printf \"%s\t%s\n\",\$1,\$3; }' | column -t | eg
 alias myip="echo $(dig -4 TXT +short o-o.myaddr.l.google.com @ns1.google.com)"
 alias listaur="paru -Qem"
 alias update="paru -Suy --skipreview --quiet --needed --color always"
+
 export QT_PLUGIN_PATH=/usr/lib/qt/plugins
 export QT_QPA_PLATFORM=wayland
 export EDITOR=nano

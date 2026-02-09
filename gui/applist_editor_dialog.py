@@ -1,9 +1,14 @@
 import subprocess
+import sys
+from pathlib import Path
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QListWidget, QPushButton, QMessageBox, QInputDialog, QHBoxLayout
 
-from programs.installer_logic import command_exists
+parent_dir = str(Path(__file__).resolve().parent.parent.joinpath("programs"))
+sys.path.append(parent_dir)
+
+from installer_logic import command_exists
 
 
 class AppListEditorDialog(QDialog):

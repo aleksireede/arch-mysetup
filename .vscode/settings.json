@@ -1,6 +1,7 @@
 {
     "python.analysis.extraPaths": [
         "./programs",
-        "./gui"
+        "./gui",
+        "./scripts"
     ]
 }
