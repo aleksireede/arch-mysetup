@@ -1,3 +1,4 @@
+import shutil
 import sys
 from pathlib import Path
 
@@ -9,7 +10,13 @@ from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QWidget, QPushButton, QLab
 parent_dir = str(Path(__file__).resolve().parent.parent.joinpath("programs"))
 sys.path.append(parent_dir)
 
+from detect_gpu import detect_gpu_vendor, install_drivers
 from installer_logic import install_paru, add_samba_drive, command_exists
+
+
+def gpu_driver_install():
+    vendor = detect_gpu_vendor()
+    install_drivers(vendor)
 
 
 class SetupWindow(QMainWindow):
@@ -20,6 +27,12 @@ class SetupWindow(QMainWindow):
     def __init__(self, parent=None):
         super().__init__(parent)
         # Buttons
+        self.outer_bottom_layout = None
+        self.bottom_layout = None
+        self.gpudrv_label = None
+        self.gpudrv_status = None
+        self.gpudrv_button = None
+        self.gpudrv_layout = None
         self.install_button = None
         self.remove_button = None
         self.add_network_drive_button = None
@@ -30,8 +43,8 @@ class SetupWindow(QMainWindow):
         # layout horizontal or vertical
         self.paru_layout = None
         self.layout = None
-        # todo: explain widget
-        self.central_widget = None
+        # main window
+        self.main_window = None
         # Set the window title text
         self.setWindowTitle("Setup: Install Paru")
         # set window size
@@ -39,9 +52,23 @@ class SetupWindow(QMainWindow):
         self.init_ui()
 
     def init_ui(self):
-        self.central_widget = QWidget()
-        self.setCentralWidget(self.central_widget)
-        self.layout = QVBoxLayout(self.central_widget)  # Set layout directly on central widget
+        self.main_window = QWidget()
+        self.setCentralWidget(self.main_window)
+        self.layout = QVBoxLayout(self.main_window)  # Set layout directly on central widget
+
+        # GPU Driver Section
+        self.gpudrv_layout = QHBoxLayout()
+        self.gpudrv_button = QPushButton("Install GPU Drivers")
+        self.gpudrv_label = QLabel("GPU Drivers:")
+        self.gpudrv_button.clicked.connect(gpu_driver_install)
+        self.gpudrv_status = QLabel()
+        self.update_gpu_status()
+
+        # Gpu driver layout setup
+        self.gpudrv_layout.addWidget(self.gpudrv_label)
+        self.gpudrv_layout.addWidget(self.gpudrv_status)
+        self.gpudrv_layout.addWidget(self.gpudrv_button)
+        self.gpudrv_layout.addStretch()
 
         # Paru section
         self.paru_layout = QHBoxLayout()
@@ -51,7 +78,7 @@ class SetupWindow(QMainWindow):
         self.update_paru_status()
         self.install_paru_button.clicked.connect(self.handle_install_paru)
 
-        # Add stretch to push buttons to the left and right
+        # add paru widgets to paru layout
         self.paru_layout.addWidget(self.paru_label)
         self.paru_layout.addWidget(self.paru_status)
         self.paru_layout.addWidget(self.install_paru_button)
@@ -74,20 +101,50 @@ class SetupWindow(QMainWindow):
 
         # Set size policies for buttons
         self.install_paru_button.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-        self.add_network_drive_button.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        self.install_button.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        self.gpudrv_button.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        self.add_network_drive_button.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        self.install_button.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        self.remove_button.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+
+        # Bottom Button layout
+        self.bottom_layout = QVBoxLayout()
+        #self.bottom_layout.addStretch()
+        self.bottom_layout.addWidget(self.install_button)
+        self.bottom_layout.addWidget(self.remove_button)
+        self.bottom_layout.addWidget(self.add_network_drive_button)
+        #self.bottom_layout.addStretch()
+
+        # Bottom outer layout
+        self.outer_bottom_layout = QHBoxLayout()
+        self.outer_bottom_layout.addStretch()
+        self.outer_bottom_layout.addLayout(self.bottom_layout)
+        self.outer_bottom_layout.addStretch()
 
         # Add to main layout with stretch
+        self.layout.addSpacing(20)
         self.layout.addLayout(self.paru_layout)
+        self.layout.addLayout(self.gpudrv_layout)
         self.layout.addSpacing(20)
-        self.layout.addWidget(self.install_button)
-        self.layout.addWidget(self.remove_button)
-        self.layout.addWidget(self.add_network_drive_button)
-        self.layout.addWidget(self.tweak_btn)
+        self.layout.addLayout(self.outer_bottom_layout)
         self.layout.addSpacing(20)
+        self.layout.addStretch()
 
         # Allow window to resize
         self.setMinimumSize(400, 200)
+
+    def update_gpu_status(self):
+        checkmark_path = Path(Path(__file__).parent.parent.resolve()).joinpath("icons/checkmark.svg")
+        red_x_path = Path(Path(__file__).parent.parent.resolve()).joinpath("icons/red_x.svg")
+        vendor = detect_gpu_vendor()
+        # :todo fix amd detection
+        if vendor == "AMD" and shutil.which("mesa"):
+            self.gpudrv_status.setPixmap(QPixmap(str(checkmark_path)).scaled(20, 20))
+        elif vendor == "Intel" and shutil.which("intel-virtual-output"):
+            self.gpudrv_status.setPixmap(QPixmap(str(checkmark_path)).scaled(20, 20))
+        elif vendor == "NVIDIA" and shutil.which("nvidia-modprobe"):
+            self.gpudrv_status.setPixmap(QPixmap(str(checkmark_path)).scaled(20, 20))
+        else:
+            self.gpudrv_status.setPixmap(QPixmap(str(red_x_path)).scaled(20, 20))
 
     def update_paru_status(self):
         checkmark_path = Path(Path(__file__).parent.parent.resolve()).joinpath("icons/checkmark.svg")
