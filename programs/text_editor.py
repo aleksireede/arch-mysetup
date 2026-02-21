@@ -1,11 +1,5 @@
 import subprocess
-import sys
 from pathlib import Path
-
-parent_dir = str(Path(__file__).resolve().parent.parent.joinpath("scripts"))
-sys.path.append(parent_dir)
-
-from text_writer import write_text
 
 # Arch / Pacman config
 pacman_conf = Path(r"/etc/pacman.conf")
@@ -15,8 +9,10 @@ multilib_enabled = "[multilib]\nInclude = /etc/pacman.d/mirrorlist"
 # Bash config
 bash_extra_path = Path(Path.home().joinpath(".bash_extra"))
 bashrc_path = Path(Path.home().joinpath(".bashrc"))
-bashrc_extra_text = 'if [ -f ~/.bash_extra ]; then\n. ~/.bash_extra\nfi")'
-bash_extra_text = Path(__file__).parent.parent.resolve().joinpath("text_files/bash_extra.txt").read_text()
+bashrc_extra_text = 'if [ -f ~/.bash_extra ]; then\n. ~/.bash_extra\nfi'
+bash_profile_path = Path(Path.home().joinpath(".bash_profile"))
+bash_profile_bashrc_template = '[[ -f ~/.bashrc ]] && . ~/.bashrc'
+bash_extra_text = Path(__file__).parent.parent.resolve().joinpath("bin", "bash_extra.sh").read_text()
 
 
 # todo: find text and then read the whole line to edit eg. ParallelDownload=5 to edit the number
@@ -67,13 +63,29 @@ def enable_bash_extra():
     Returns True if extra bash configuration was enabled
     :rtype: bool
     """
-    # check that the bashrc config exists and that the text is not already enabled
-    if bashrc_path.exists() and bashrc_extra_text not in bashrc_path.read_text():
-        print("Enabling extra bash configuration...")
-        write_text(bashrc_path, bashrc_extra_text)
-        return True
-    else:
-        return False
+    changed = False
+
+    # Enable ~/.bash_extra source line in ~/.bashrc
+    if not bashrc_path.exists():
+        bashrc_path.touch()
+    bashrc_data = bashrc_path.read_text()
+    if bashrc_extra_text not in bashrc_data:
+        with open(bashrc_path, "a") as f:
+            f.write("\n" + bashrc_extra_text + "\n")
+        changed = True
+
+    # Ensure ~/.bash_profile sources ~/.bashrc using requested template.
+    if not bash_profile_path.exists():
+        bash_profile_path.touch()
+    bash_profile_data = bash_profile_path.read_text()
+    if bash_profile_bashrc_template not in bash_profile_data:
+        with open(bash_profile_path, "a") as f:
+            f.write("\n" + bash_profile_bashrc_template + "\n")
+        changed = True
+
+    if changed:
+        print("Enabled bash extra in ~/.bashrc and ensured ~/.bash_profile loads ~/.bashrc")
+    return changed
 
 
 def write_bash_extra():
@@ -82,15 +94,12 @@ def write_bash_extra():
     If it already exists then it is updated.
     :rtype: None
     """
-    # write text to bash_extra if not exists from built-in file /text_files/bash_extra.txt
-    if not bash_extra_path.exists():
-        print("Enabling extra bash configuration...")
-        write_text(bash_extra_path, bash_extra_text)
-    else:
-        # we need to remove the file to update it
+    # Write or update ~/.bash_extra with repository content.
+    if bash_extra_path.exists():
         print("Updating extra bash configuration...")
-        bash_extra_path.unlink()
-        write_text(bash_extra_path, bash_extra_text)
+    else:
+        print("Enabling extra bash configuration...")
+    bash_extra_path.write_text(bash_extra_text)
 
 
 def check_multilib():

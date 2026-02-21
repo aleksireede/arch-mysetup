@@ -1,0 +1,83 @@
+APP_DARK_THEME = """
+QWidget {
+    background-color: #0f141b;
+    color: #d6dee8;
+}
+QFrame#serviceCard {
+    background-color: #1b2430;
+    border: 1px solid #2e3f53;
+    border-radius: 10px;
+}
+QLabel#serviceTitle {
+    font-size: 14px;
+    font-weight: 700;
+    color: #eaf2ff;
+}
+QPushButton {
+    background-color: #202b38;
+    color: #d6dee8;
+    border: 1px solid #2f4155;
+    border-radius: 6px;
+    padding: 7px 10px;
+}
+QPushButton:hover {
+    background-color: #273545;
+}
+QPushButton:pressed {
+    background-color: #1c2733;
+}
+QPushButton#serviceAction {
+    background-color: #2f81f7;
+    color: #ffffff;
+    border: none;
+    border-radius: 6px;
+    padding: 7px 12px;
+    font-weight: 600;
+}
+QPushButton#serviceAction:hover {
+    background-color: #4091ff;
+}
+QPushButton#serviceAction:pressed {
+    background-color: #226ad1;
+}
+QPushButton#serviceAction[installed="true"] {
+    background-color: #2ea043;
+    border: 1px solid #3fb950;
+    font-weight: 700;
+}
+QPushButton#serviceAction[installed="true"]:hover {
+    background-color: #36b24d;
+}
+QLabel#syncStatusLabel {
+    background-color: #16272f;
+    color: #d8f4ff;
+    border: 2px solid #35c8ff;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 700;
+    padding: 8px 14px;
+    letter-spacing: 0.6px;
+}
+QListWidget {
+    background-color: #111923;
+    border: 1px solid #2f4155;
+    border-radius: 8px;
+}
+QFrame#backButtonCard {
+    background-color: #991212;
+    border-radius: 5px;
+}
+QFrame#backButtonCard:hover {
+    background-color: #ba1616;
+}
+QLabel#backButtonLabel, QPushButton#backButtonArrow {
+    background-color: transparent;
+    color: #ffffff;
+    font-weight: bold;
+    border: none;
+}
+"""
+
+
+def apply_dark_theme(widget):
+    widget.setStyleSheet(APP_DARK_THEME)

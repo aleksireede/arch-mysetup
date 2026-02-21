@@ -4,15 +4,15 @@ import argparse
 from pathlib import Path
 
 
-def replacetext(file: Path, search_text: str, replace_text: str):
+def replace_text(file: Path, search_text: str, text_to_replace: str):
     data = file.read_text()
 
     if search_text not in data:
         print(f"Text not found: '{search_text}' — skipping.")
         return
 
-    file.write_text(data.replace(search_text, replace_text))
-    print(f"Text replaced: '{search_text}' -> '{replace_text}'")
+    file.write_text(data.replace(search_text, text_to_replace))
+    print(f"Text replaced: '{search_text}' -> '{text_to_replace}'")
 
 
 def write_text(file: Path, text: str):
@@ -51,7 +51,7 @@ def main():
         write_text(file_path, args.arg1)
     else:
         # 3 arguments → replace text
-        replacetext(file_path, args.arg1, args.arg2)
+        replace_text(file_path, args.arg1, args.arg2)
 
 
 if __name__ == "__main__":

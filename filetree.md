@@ -32,7 +32,8 @@ Root path: ./
 ├── ⚙️ .gitignore
 ├── 📄 LICENSE
 ├── 📝 README.md
-├── ⚙️ apps.yaml
+├── 📁 bin/
+│   └── ⚙️ apps.yaml
 ├── 🐍 main.py
 └── 📄 main.sh
 

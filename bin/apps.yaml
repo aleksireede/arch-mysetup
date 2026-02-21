@@ -38,14 +38,9 @@
   source: Unknown
   category: Utilities
   conflicts: []
-- name: arch-update
-  description: Default description for arch-update
-  source: Unknown
-  category: Utilities
-  conflicts: []
-- name: audio-convert
-  description: Default description for audio-convert
-  source: Unknown
+- name: aria2
+  description: Default description for aria2
+  source: pacman
   category: Utilities
   conflicts: []
 - name: aur-sync-vote
@@ -83,18 +78,8 @@
   source: Unknown
   category: Utilities
   conflicts: []
-- name: corectrl
-  description: Default description for corectrl
-  source: Unknown
-  category: Utilities
-  conflicts: []
 - name: cowsay
   description: Default description for cowsay
-  source: Unknown
-  category: Utilities
-  conflicts: []
-- name: cpupower
-  description: Default description for cpupower
   source: Unknown
   category: Utilities
   conflicts: []
@@ -111,6 +96,16 @@
 - name: dream-background-remover
   description: Default description for dream-background-remover
   source: Unknown
+  category: Utilities
+  conflicts: []
+- name: expac
+  description: Default description for expac
+  source: pacman
+  category: Utilities
+  conflicts: []
+- name: eza
+  description: Default description for eza
+  source: pacman
   category: Utilities
   conflicts: []
 - name: faudio
@@ -186,11 +181,6 @@
 - name: gnome-xcf-thumbnailer
   description: Default description for gnome-xcf-thumbnailer
   source: Unknown
-  category: Utilities
-  conflicts: []
-- name: google-chrome
-  description: Default description for google-chrome
-  source: paru
   category: Utilities
   conflicts: []
 - name: goverlay
@@ -288,11 +278,6 @@
   source: Unknown
   category: Utilities
   conflicts: []
-- name: lact
-  description: Default description for lact
-  source: Unknown
-  category: Utilities
-  conflicts: []
 - name: less
   description: Default description for less
   source: Unknown
@@ -348,18 +333,8 @@
   source: Unknown
   category: Utilities
   conflicts: []
-- name: lib32-libva
-  description: Default description for lib32-libva
-  source: Unknown
-  category: Utilities
-  conflicts: []
 - name: lib32-mangohud
   description: Default description for lib32-mangohud
-  source: Unknown
-  category: Utilities
-  conflicts: []
-- name: lib32-mesa
-  description: Default description for lib32-mesa
   source: Unknown
   category: Utilities
   conflicts: []
@@ -383,16 +358,6 @@
   source: Unknown
   category: Utilities
   conflicts: []
-- name: lib32-vulkan-mesa-layers
-  description: Default description for lib32-vulkan-mesa-layers
-  source: Unknown
-  category: Utilities
-  conflicts: []
-- name: lib32-vulkan-radeon
-  description: Default description for lib32-vulkan-radeon
-  source: Unknown
-  category: Utilities
-  conflicts: []
 - name: libjpeg-turbo
   description: Default description for libjpeg-turbo
   source: Unknown
@@ -400,11 +365,6 @@
   conflicts: []
 - name: libreoffice-fresh
   description: Default description for libreoffice-fresh
-  source: Unknown
-  category: Utilities
-  conflicts: []
-- name: libva-git
-  description: Default description for libva-git
   source: Unknown
   category: Utilities
   conflicts: []
@@ -435,11 +395,6 @@
   conflicts: []
 - name: lolcat
   description: Default description for lolcat
-  source: Unknown
-  category: Utilities
-  conflicts: []
-- name: lsd
-  description: Default description for lsd
   source: Unknown
   category: Utilities
   conflicts: []
@@ -558,11 +513,6 @@
   source: Unknown
   category: Utilities
   conflicts: []
-- name: oh-my-bash-git
-  description: Default description for oh-my-bash-git
-  source: Unknown
-  category: Utilities
-  conflicts: []
 - name: openal
   description: Default description for openal
   source: Unknown
@@ -575,11 +525,6 @@
   conflicts: []
 - name: opera
   description: Default description for opera
-  source: Unknown
-  category: Utilities
-  conflicts: []
-- name: oreo-cursors-bin
-  description: Default description for oreo-cursors-bin
   source: Unknown
   category: Utilities
   conflicts: []
@@ -633,11 +578,6 @@
   source: Unknown
   category: Utilities
   conflicts: []
-- name: protonup-qt
-  description: Default description for protonup-qt
-  source: Unknown
-  category: Utilities
-  conflicts: []
 - name: pwvucontrol
   description: Default description for pwvucontrol
   source: Unknown
@@ -653,9 +593,19 @@
   source: Unknown
   category: Utilities
   conflicts: []
+- name: python-mutagen
+  description: Default description for python-mutagen
+  source: pacman
+  category: Utilities
+  conflicts: []
 - name: python-pip
   description: Default description for python-pip
   source: Unknown
+  category: Utilities
+  conflicts: []
+- name: python-pycryptodomex
+  description: Default description for python-pycryptodomex
+  source: pacman
   category: Utilities
   conflicts: []
 - name: python-pyqt5
@@ -668,14 +618,19 @@
   source: Unknown
   category: Utilities
   conflicts: []
+- name: python-websockets
+  description: Default description for python-websockets
+  source: pacman
+  category: Utilities
+  conflicts: []
 - name: qbittorrent
   description: Default description for qbittorrent
   source: Unknown
   category: Utilities
   conflicts: []
-- name: rar
-  description: Default description for rar
-  source: Unknown
+- name: qt6-multimedia
+  description: Default description for qt6-multimedia
+  source: pacman
   category: Utilities
   conflicts: []
 - name: rclone-browser
@@ -685,7 +640,7 @@
   conflicts: []
 - name: reflector
   description: Default description for reflector
-  source: Unknown
+  source: pacman
   category: Utilities
   conflicts: []
 - name: rpi-imager
@@ -693,23 +648,18 @@
   source: pacman
   category: Utilities
   conflicts: []
-- name: rustdesk-bin
-  description: Default description for rustdesk-bin
-  source: Unknown
-  category: Utilities
-  conflicts: []
 - name: scx-scheds
   description: Default description for scx-scheds
   source: Unknown
   category: Utilities
   conflicts: []
-- name: snapchat
-  description: Default description for snapchat
-  source: Unknown
+- name: sleepy-launcher
+  description: Default description for sleepy-launcher
+  source: paru
   category: Utilities
   conflicts: []
-- name: snitch-bin
-  description: Default description for snitch-bin
+- name: snapchat
+  description: Default description for snapchat
   source: Unknown
   category: Utilities
   conflicts: []
@@ -778,34 +728,19 @@
   source: Unknown
   category: Utilities
   conflicts: []
-- name: vulkan-mesa-layers
-  description: Default description for vulkan-mesa-layers
-  source: Unknown
-  category: Utilities
-  conflicts: []
-- name: vulkan-radeon
-  description: Default description for vulkan-radeon
-  source: Unknown
-  category: Utilities
-  conflicts: []
-- name: vulkan-tools
-  description: Default description for vulkan-tools
-  source: Unknown
-  category: Utilities
-  conflicts: []
 - name: wireplumber
   description: Default description for wireplumber
-  source: Unknown
-  category: Utilities
-  conflicts: []
-- name: xdg-ninja
-  description: Default description for xdg-ninja
   source: Unknown
   category: Utilities
   conflicts: []
 - name: xpadneo-dkms
   description: Default description for xpadneo-dkms
   source: Unknown
+  category: Utilities
+  conflicts: []
+- name: yt-dlp
+  description: Default description for yt-dlp
+  source: pacman
   category: Utilities
   conflicts: []
 - name: zapzap
@@ -816,11 +751,6 @@
 - name: zenmap
   description: Default description for zenmap
   source: pacman
-  category: Utilities
-  conflicts: []
-- name: zenpower3-dkms
-  description: Default description for zenpower3-dkms
-  source: Unknown
   category: Utilities
   conflicts: []
 - name: zfs-dkms

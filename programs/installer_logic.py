@@ -1,4 +1,5 @@
 import os
+import secrets
 import shutil
 import subprocess
 import time
@@ -137,7 +138,7 @@ def open_terminal(command):
                 else:
                     process = subprocess.Popen([term, *args, command_str])
                 return process
-            except Exception:
+            except (OSError, ValueError, subprocess.SubprocessError):
                 continue
 
     raise RuntimeError("No supported terminal emulator found")
@@ -175,8 +176,7 @@ def apps_helper(apps, command):
 
 def add_samba_drive(share_path, mount_point, username, password):
     """Add a Samba network drive to fstab and create .smbcredentials."""
-    home_dir = os.path.expanduser("~")
-    cred_file = os.path.join(home_dir, ".smbcredentials")
+    cred_file = generate_unique_root_cred_path()
 
     # Create credentials file
     try:
@@ -189,7 +189,7 @@ def add_samba_drive(share_path, mount_point, username, password):
 
     # Run the setup script with pkexec
     try:
-        script_path = Path(__file__).parent / "scripts" / "setup_samba.sh"
+        script_path = Path(__file__).parent.parent / "scripts" / "setup_samba.sh"
         subprocess.run(["pkexec", script_path, mount_point,
                         share_path, cred_file], check=True)
     except subprocess.CalledProcessError as e:
@@ -197,3 +197,24 @@ def add_samba_drive(share_path, mount_point, username, password):
         return False
 
     return True
+
+
+def generate_unique_root_cred_path(root_dir="/root", max_attempts=100):
+    """
+    Create a unique random subdirectory under root_dir and return its
+    .smbcredentials file path.
+    """
+    root_path = Path(root_dir)
+    for _ in range(max_attempts):
+        random_name = f"smbcred_{secrets.token_hex(6)}"
+        candidate_dir = root_path / random_name
+        try:
+            # Atomic create so an existing name is never reused.
+            candidate_dir.mkdir(mode=0o700, parents=False, exist_ok=False)
+            return candidate_dir / ".smbcredentials"
+        except FileExistsError:
+            continue
+        except PermissionError as e:
+            raise RuntimeError(f"Permission denied while creating {candidate_dir}") from e
+
+    raise RuntimeError("Failed to allocate a unique credentials path")

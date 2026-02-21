@@ -1,20 +1,44 @@
 import sys
 from pathlib import Path
 
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QThread, QObject, pyqtSignal
 from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QHBoxLayout, QWidget, QPushButton, QListWidget, QListWidgetItem, \
-    QMessageBox, QLabel, QFrame
+    QMessageBox
 
 parent_dir = str(Path(__file__).resolve().parent.parent.joinpath("programs"))
 sys.path.append(parent_dir)
 
-from installer_logic import (is_app_installed, list_all_installed_apps, remove_apps)
+from programs.installer_logic import (list_all_installed_apps, remove_apps)
+
+try:
+    from .ui_helpers import create_back_button, create_select_refresh_row
+    from .theme import apply_dark_theme
+except ImportError:
+    from ui_helpers import create_back_button, create_select_refresh_row
+    from theme import apply_dark_theme
+
+
+class AppListWorker(QObject):
+    finished = pyqtSignal(list)
+    error = pyqtSignal(str)
+
+    def run(self):
+        try:
+            self.finished.emit(list_all_installed_apps())
+        except Exception as e:
+            self.error.emit(str(e))
 
 
 class AppUninstaller(QMainWindow):
     def __init__(self, setup_window):
         super().__init__()
+        self.thread = None
+        self.worker = None
         # Buttons
+        self.back_lbl = None
+        self.back_btn = None
+        self.frame_layout = None
+        self.back_button_container = None
         self.install_button = None
         self.select_all_button = None
         self.back_button = None
@@ -33,12 +57,13 @@ class AppUninstaller(QMainWindow):
         self.setWindowTitle("Arch App Uninstaller")
         self.setGeometry(100, 100, 500, 400)
         # app list
-        self.apps = list_all_installed_apps()
+        self.apps = []
         self.init_ui()
 
     def init_ui(self):
         self.main_window_frame = QWidget()
         self.setCentralWidget(self.main_window_frame)
+        apply_dark_theme(self)
         self.main_layout = QVBoxLayout()
         self.secondary_layout = QHBoxLayout()
         self.app_layout = QHBoxLayout()
@@ -50,66 +75,24 @@ class AppUninstaller(QMainWindow):
         self.list_widget.setSelectionMode(QListWidget.MultiSelection)
 
         # Add Apps to the list
-        self.refresh_app_list()
+        self.refresh_app_list_async()
 
-        ## BEGIN Custom Back Button
-        self.back_button_container = QFrame()
-        self.back_button_container.setFixedSize(150, 45)
-
-        self.frame_layout = QHBoxLayout(self.back_button_container)
-        self.frame_layout.setContentsMargins(10, 0, 10, 0)
-        self.frame_layout.setSpacing(5) # Small gap between arrow and text
-
-        # Remove the large manual spacing and stretch if you want them centered
-        self.frame_layout.setAlignment(Qt.AlignCenter) # Keeps group in the middle
-        self.back_button_container.setStyleSheet("""
-            QFrame {
-                background-color: #991212;
-                border-radius: 5px;
-            }
-            QFrame:hover {
-                background-color: #ba1616; /* Lighter red on hover */
-            }
-            QLabel, QPushButton {
-                background-color: transparent; /* Makes children take Frame's color */
-                color: white;
-                font-weight: bold;
-                border: none;
-            }
-            """)
-        
-        self.back_btn = QPushButton("←") # Using an icon or arrow
-        self.back_lbl = QLabel("Back")
-        
-        # Layout
-        self.frame_layout.addWidget(self.back_btn)
-        self.frame_layout.addSpacing(20)
-        self.frame_layout.addWidget(self.back_lbl)
-        self.frame_layout.addStretch()
-        
-        # Button press
-        self.back_button_container.mousePressEvent = lambda event: self.go_back_to_setup()
-        self.back_btn.clicked.connect(self.go_back_to_setup)
-        ## END Back Button
-
-        self.select_all_button = QPushButton("Select All")
-        self.select_all_button.clicked.connect(self.toggle_select_all_apps)
+        self.back_button_container, self.back_btn, self.back_lbl, self.frame_layout = create_back_button(
+            self.go_back_to_setup
+        )
 
         self.install_button = QPushButton("Remove Selected")
         self.install_button.clicked.connect(self.remove_selected)
         self.install_button.setFixedWidth(200)
-
-        self.refresh_button = QPushButton("Refresh")
-        self.refresh_button.clicked.connect(self.refresh_app_list)
 
         # second layout
         self.secondary_layout.addWidget(self.back_button_container)
         self.secondary_layout.addStretch()
 
         # select and refresh layout
-        self.third_layout.addWidget(self.select_all_button)
-        self.third_layout.addStretch()
-        self.third_layout.addWidget(self.refresh_button)
+        self.third_layout, self.select_all_button, self.refresh_button = create_select_refresh_row(
+            self.toggle_select_all_apps, self.refresh_app_list_async
+        )
 
         # bottom layout
         self.bottom_layout.addWidget(self.install_button)
@@ -126,13 +109,10 @@ class AppUninstaller(QMainWindow):
         self.main_window_frame.setLayout(self.main_layout)
 
     def refresh_app_list(self):
-        """Refresh the list of Apps, only showing installed apps."""
+        """Render current installed apps in the list widget."""
         self.list_widget.clear()
-        installed_apps = [
-            app for app in self.apps if is_app_installed(app)]
-
-        if installed_apps:
-            for app in installed_apps:
+        if self.apps:
+            for app in self.apps:
                 item = QListWidgetItem(app)
                 item.setFlags(item.flags() | Qt.ItemFlag.ItemIsUserCheckable)
                 item.setCheckState(Qt.CheckState.Unchecked)
@@ -142,6 +122,43 @@ class AppUninstaller(QMainWindow):
             item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsSelectable &
                           ~Qt.ItemFlag.ItemIsUserCheckable)
             self.list_widget.addItem(item)
+
+    def refresh_app_list_async(self):
+        if self.thread and self.thread.isRunning():
+            return
+
+        self.list_widget.clear()
+        loading_item = QListWidgetItem("Refreshing installed app list...")
+        loading_item.setFlags(loading_item.flags() & ~Qt.ItemFlag.ItemIsSelectable)
+        self.list_widget.addItem(loading_item)
+
+        self.thread = QThread()
+        self.worker = AppListWorker()
+        self.worker.moveToThread(self.thread)
+        self.thread.started.connect(self.worker.run)
+
+        self.worker.finished.connect(self.on_apps_loaded)
+        self.worker.error.connect(self.on_refresh_error)
+
+        self.worker.finished.connect(self.thread.quit)
+        self.worker.finished.connect(self.worker.deleteLater)
+        self.thread.finished.connect(self.thread.deleteLater)
+        self.thread.finished.connect(self.cleanup_thread)
+
+        self.thread.start()
+
+    def on_apps_loaded(self, apps):
+        self.apps = apps
+        self.refresh_app_list()
+
+    def on_refresh_error(self, error_message):
+        QMessageBox.critical(self, "Error", f"Failed to refresh app list: {error_message}")
+        self.apps = []
+        self.refresh_app_list()
+
+    def cleanup_thread(self):
+        self.thread = None
+        self.worker = None
 
     def toggle_select_all_apps(self):
         """Toggle between selecting and deselecting all apps."""
@@ -174,8 +191,14 @@ class AppUninstaller(QMainWindow):
         else:
             QMessageBox.warning(self, "No Selection",
                                 "No apps selected for installation.")
-        self.refresh_app_list()
+        self.refresh_app_list_async()
 
     def go_back_to_setup(self):
         self.previous_window.show()  # Show the setup window
         self.hide()  # Hide the current window
+
+    def closeEvent(self, event):
+        if self.thread and self.thread.isRunning():
+            self.thread.quit()
+            self.thread.wait(3000)
+        event.accept()

@@ -1,16 +1,10 @@
-import os
 import subprocess
 from pathlib import Path
-import sys
 
-parent_dir = str(Path(__file__).resolve().parent.parent.joinpath("programs"))
-sys.path.append(parent_dir)
+from programs.installer_logic import command_exists
+from scripts.text_writer import write_text
 
-from installer_logic import command_exists
-from text_editor import sudo_write_text
-from text_writer import write_text
-
-text_file_path = Path(__file__).parent.parent.resolve().joinpath("text_files")
+text_file_path = Path(__file__).parent.parent.resolve().joinpath("bin")
 
 # files
 zeroconf_dest_path = Path.home().joinpath(".config", "pipewire", "pipewire.conf.d",
@@ -46,23 +40,44 @@ def reflector_service_timer():
 
 
 def git_keystore():
-    store_string = subprocess.check_output(
-        ["git", "config", "credential.helper"])
-    if not store_string == b'store\n':
-        subprocess.run(["git", "config", "--global",
-                       "credential.helper", "store"])
-        print("Git config updated")
-    else:
+    result = subprocess.run(
+        ["git", "config", "--global", "credential.helper"],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        check=False,
+    )
+
+    if result.returncode not in (0, 1):
+        raise RuntimeError(result.stderr.strip() or "Failed to read git credential.helper")
+
+    current_helper = result.stdout.strip()
+    if current_helper == "store":
         print("Git config not updated")
+        return
+
+    try:
+        subprocess.run(
+            ["git", "config", "--global", "credential.helper", "store"],
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+    except subprocess.CalledProcessError as e:
+        raise RuntimeError(e.stderr.strip() or "Failed to update git credential.helper") from e
+    print("Git config updated")
 
 
-def get_username():
-    """
-    Get username
-    :return: username
-    :rtype: str
-    """
-    return os.getlogin()
+def sudo_write_text(file: Path, text: str):
+    script_path = Path(__file__).resolve().parent / "text_writer.py"
+    subprocess.run([
+        "pkexec",
+        "python3",
+        str(script_path),
+        str(file),
+        text
+    ], check=True)
 
 
 def write_config_file(file: Path, content: str, sudo=False, remove=False):
@@ -83,6 +98,9 @@ def write_config_file(file: Path, content: str, sudo=False, remove=False):
         if sudo:
             sudo_write_text(file, content)
         else:
+            file.parent.mkdir(parents=True, exist_ok=True)
+            if not file.exists():
+                file.touch()
             write_text(file, content)
         return True
 

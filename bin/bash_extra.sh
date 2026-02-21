@@ -1,12 +1,14 @@
 alias localip="ifconfig | grep inet"
 alias neofetch="neofetch | lolcat"
-alias path="echo -e ${PATH//:/\\n}"
+alias path='echo -e "${PATH//:/\\n}"'
 alias cd..="cd .."
 alias ..="cd .."
 alias ...="cd ../../../"
 alias gh="history|grep"
-alias mnt="mount | awk -F' ' '{ printf \"%s\t%s\n\",\$1,\$3; }' | column -t | egrep ^/dev/ | sort"
-alias myip="echo $(dig -4 TXT +short o-o.myaddr.l.google.com @ns1.google.com)"
+mnt() {
+    mount | awk -F' ' '{ printf "%s\t%s\n",$1,$3; }' | column -t | grep '^/dev/' | sort
+}
+alias extip='echo $(dig -4 TXT +short o-o.myaddr.l.google.com @ns1.google.com)'
 alias listaur="paru -Qem"
 alias update="paru -Suy --skipreview --quiet --needed --color always"
 

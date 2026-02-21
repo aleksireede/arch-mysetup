@@ -1,59 +1,96 @@
 from pathlib import Path
-import sys
 import yaml
 
-parent_dir = str(Path(__file__).resolve().parent.parent.joinpath("programs"))
-sys.path.append(parent_dir)
+from programs.installer_logic import detect_install_method
 
-from installer_logic import detect_install_method
+class AppsFileStore:
+    def __init__(self, yaml_path=None):
+        self.yaml_path = yaml_path or Path(__file__).parent.parent.resolve().joinpath("bin", "apps.yaml")
+        self.yaml_data_loaded = []
+        self._is_loaded = False
 
-yaml_path = Path(__file__).parent.parent.resolve().joinpath("apps.yaml")
+    def load_apps_from_file(self):
+        return self.get_apps(self.load_yaml())
+
+    def load_yaml(self):
+        if self._is_loaded:
+            return self.yaml_data_loaded
+
+        if not self.yaml_path.exists():
+            self.yaml_data_loaded = []
+            self._is_loaded = True
+            return self.yaml_data_loaded
+
+        with open(self.yaml_path, "r") as f:
+            try:
+                data = yaml.safe_load(f)
+                self.yaml_data_loaded = data if isinstance(data, list) else []
+            except yaml.YAMLError:
+                self.yaml_data_loaded = []
+        self._is_loaded = True
+        return self.yaml_data_loaded
+
+    @staticmethod
+    def get_apps(yaml_data):
+        """Extract apps from YAML data into a list."""
+        return [app["name"] for app in yaml_data if "name" in app]
+
+    def add_app_to_yaml(self, app_to_add):
+        yaml_data = self.load_yaml()
+        source = detect_install_method(app_to_add)
+        application = {
+            "name": app_to_add,
+            "description": f"Default description for {app_to_add}",
+            "source": source if source else "Unknown",
+            "category": "Utilities",
+            "conflicts": [],
+        }
+        yaml_data.append(application)
+        self.write_to_yaml(yaml_data)
+
+    def remove_app_from_yaml(self, app_to_remove):
+        yaml_data = self.load_yaml()
+        self.yaml_data_loaded = [app for app in yaml_data if app.get("name") != app_to_remove]
+        self.write_to_yaml(self.yaml_data_loaded)
+
+    def write_to_yaml(self, yaml_data):
+        yaml_data.sort(key=lambda x: x.get("name", ""))
+        self.yaml_data_loaded = yaml_data
+        self._is_loaded = True
+        with open(self.yaml_path, "w") as f:
+            yaml.safe_dump(self.yaml_data_loaded, f, sort_keys=False)
+
+
+apps_file_store = AppsFileStore()
+yaml_data_loaded = []
 
 
 def load_apps_from_file():
-    return get_apps(load_yaml())
+    return apps_file_store.load_apps_from_file()
 
 
 def load_yaml():
-    if not yaml_path.exists():
-        return []
-
-    with open(yaml_path, "r") as f:
-        try:
-            data = yaml.safe_load(f)
-            if not isinstance(data, list):
-                return []
-            return data
-        except yaml.YAMLError:
-            return []
+    global yaml_data_loaded
+    yaml_data_loaded = apps_file_store.load_yaml()
+    return yaml_data_loaded
 
 
 def get_apps(yaml_data):
-    """Extract apps from YAML data into a list."""
-    return [app['name'] for app in yaml_data if 'name' in app]
+    return apps_file_store.get_apps(yaml_data)
 
 
-def add_app_to_yaml(app):
-    yaml_data = load_yaml()
-    source = detect_install_method(app)
-    application = {
-        "name": app,
-        "description": f"Default description for {app}",
-        "source": source if source else "Unknown",
-        "category": "Utilities",
-        "conflicts": []
-    }
-    yaml_data.append(application)
-    write_to_yaml(yaml_data)
+def add_app_to_yaml(app_to_add):
+    apps_file_store.add_app_to_yaml(app_to_add)
 
 
-def remove_app_from_yaml(app):
-    yaml_data = load_yaml()
-    yaml_data.remove(app)
-    write_to_yaml(yaml_data)
+def remove_app_from_yaml(app_to_remove):
+    apps_file_store.remove_app_from_yaml(app_to_remove)
 
 
 def write_to_yaml(yaml_data):
-    yaml_data.sort(key=lambda x: x["name"])
-    with open(yaml_path, "w") as f:
-        yaml.safe_dump(yaml_data, f, sort_keys=False)
+    apps_file_store.write_to_yaml(yaml_data)
+
+
+if __name__ == "__main__":
+    load_yaml()
+    print(yaml_data_loaded)

@@ -1,15 +1,14 @@
 import subprocess
-import sys
-from pathlib import Path
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QListWidget, QPushButton, QMessageBox, QInputDialog, QHBoxLayout
 
-parent_dir = str(Path(__file__).resolve().parent.parent.joinpath("programs"))
-sys.path.append(parent_dir)
-
-from apps_file import add_app_to_yaml, remove_app_from_yaml
-from installer_logic import command_exists
+from programs.apps_file import add_app_to_yaml, remove_app_from_yaml
+from programs.installer_logic import command_exists
+try:
+    from .theme import apply_dark_theme
+except ImportError:
+    from theme import apply_dark_theme
 
 
 class AppListEditorDialog(QDialog):
@@ -17,14 +16,15 @@ class AppListEditorDialog(QDialog):
         super().__init__(parent)
         self.setWindowTitle("App List Editor")
         self.setWindowModality(Qt.WindowModality.ApplicationModal)
-        self.setGeometry(100,100,400,500)
+        self.setGeometry(100, 100, 400, 500)
+        apply_dark_theme(self)
         self.selected_item = None
         self.apps = apps
 
         # use vertical box layout
         layout = QHBoxLayout(self)
-        button_layout = QVBoxLayout(self)
-        list_layout = QVBoxLayout(self)
+        button_layout = QVBoxLayout()
+        list_layout = QVBoxLayout()
 
         # List widget
         self.list_widget = QListWidget(self)
@@ -35,7 +35,7 @@ class AppListEditorDialog(QDialog):
         add_btn.clicked.connect(self.add_apps)
 
         # OK button
-        ok_btn = QPushButton("OK", self)
+        ok_btn = QPushButton("Apply", self)
         ok_btn.clicked.connect(self.accept)
 
         # Remove button
@@ -50,11 +50,12 @@ class AppListEditorDialog(QDialog):
         list_layout.addWidget(self.list_widget)
 
         # button layout
+        button_layout.addStretch()
         button_layout.addWidget(add_btn)
         button_layout.addWidget(remove_btn)
+        button_layout.addSpacing(15)
         button_layout.addWidget(ok_btn)
         button_layout.addWidget(cancel_btn)
-        button_layout.addStretch()
 
         # main layout
         layout.addLayout(list_layout)
