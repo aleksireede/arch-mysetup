@@ -29,11 +29,31 @@ class AppListWorker(QObject):
             self.error.emit(str(e))
 
 
+class RemoveOperationWorker(QObject):
+    finished = pyqtSignal()
+    error = pyqtSignal(str)
+
+    def __init__(self, apps):
+        super().__init__()
+        self.apps = apps
+
+    def run(self):
+        try:
+            process = remove_apps(self.apps, "paru")
+            if process and hasattr(process, "wait"):
+                process.wait()
+            self.finished.emit()
+        except Exception as e:
+            self.error.emit(str(e))
+
+
 class AppUninstaller(QMainWindow):
     def __init__(self, setup_window):
         super().__init__()
         self.thread = None
         self.worker = None
+        self.action_thread = None
+        self.action_worker = None
         # Buttons
         self.back_lbl = None
         self.back_btn = None
@@ -187,7 +207,8 @@ class AppUninstaller(QMainWindow):
                 QMessageBox.Yes | QMessageBox.No
             )
             if confirm == QMessageBox.Yes:
-                remove_apps(selected_apps, "paru")
+                self.start_remove_operation(selected_apps)
+                return
         else:
             QMessageBox.warning(self, "No Selection",
                                 "No apps selected for installation.")
@@ -198,7 +219,47 @@ class AppUninstaller(QMainWindow):
         self.hide()  # Hide the current window
 
     def closeEvent(self, event):
+        if self.action_thread and self.action_thread.isRunning():
+            self.action_thread.quit()
+            self.action_thread.wait(3000)
         if self.thread and self.thread.isRunning():
             self.thread.quit()
             self.thread.wait(3000)
         event.accept()
+
+    def start_remove_operation(self, selected_apps):
+        if self.action_thread and self.action_thread.isRunning():
+            return
+
+        self.install_button.setEnabled(False)
+        self.refresh_button.setEnabled(False)
+        self.select_all_button.setEnabled(False)
+
+        self.action_thread = QThread()
+        self.action_worker = RemoveOperationWorker(selected_apps)
+        self.action_worker.moveToThread(self.action_thread)
+        self.action_thread.started.connect(self.action_worker.run)
+        self.action_worker.finished.connect(self.on_remove_operation_finished)
+        self.action_worker.error.connect(self.on_remove_operation_error)
+        self.action_worker.finished.connect(self.action_thread.quit)
+        self.action_worker.finished.connect(self.action_worker.deleteLater)
+        self.action_thread.finished.connect(self.action_thread.deleteLater)
+        self.action_thread.finished.connect(self.cleanup_action_thread)
+        self.action_thread.start()
+
+    def on_remove_operation_finished(self):
+        self.install_button.setEnabled(True)
+        self.refresh_button.setEnabled(True)
+        self.select_all_button.setEnabled(True)
+        self.refresh_app_list_async()
+
+    def on_remove_operation_error(self, error_message):
+        self.install_button.setEnabled(True)
+        self.refresh_button.setEnabled(True)
+        self.select_all_button.setEnabled(True)
+        QMessageBox.critical(self, "Remove Error", f"Removal failed: {error_message}")
+        self.refresh_app_list_async()
+
+    def cleanup_action_thread(self):
+        self.action_thread = None
+        self.action_worker = None

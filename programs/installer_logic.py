@@ -2,6 +2,7 @@ import os
 import secrets
 import shutil
 import subprocess
+import tempfile
 import time
 from pathlib import Path
 
@@ -83,11 +84,63 @@ def is_app_installed(app_name):
     return False
 
 
-def install_paru():
+def install_paru(sudo_password=None):
     """Install paru if not already installed."""
     script_path = Path(__file__).parent.parent.resolve().joinpath("scripts", "install_paru.sh")
     if command_exists("paru"):
         return True
+    if sudo_password:
+        temp_dir = Path(tempfile.mkdtemp(prefix="paru_", dir="/tmp"))
+        askpass_file = Path(tempfile.mkstemp(prefix="arch_mysetup_askpass_", dir="/tmp")[1])
+        try:
+            subprocess.run(
+                ["sudo", "-S", "-p", "", "-v"],
+                input=sudo_password + "\n",
+                text=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                check=True
+            )
+            subprocess.run(
+                ["sudo", "-S", "-p", "", "pacman", "-S", "--needed", "--noconfirm", "base-devel", "git", "rust"],
+                input=sudo_password + "\n",
+                text=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                check=True
+            )
+            subprocess.run(
+                ["git", "clone", "https://aur.archlinux.org/paru.git", str(temp_dir)],
+                check=True
+            )
+
+            askpass_file.write_text(
+                "#!/usr/bin/env python3\n"
+                "import os\n"
+                "print(os.environ.get('ARCH_MYSETUP_SUDO_PASSWORD', ''))\n"
+            )
+            os.chmod(askpass_file, 0o700)
+
+            env = os.environ.copy()
+            env["SUDO_ASKPASS"] = str(askpass_file)
+            env["ARCH_MYSETUP_SUDO_PASSWORD"] = sudo_password
+            env["PACMAN_AUTH"] = "sudo -A -p ''"
+
+            subprocess.run(
+                ["bash", "-lc", "makepkg -si --noconfirm --noprogressbar"],
+                cwd=temp_dir,
+                env=env,
+                check=True
+            )
+            return command_exists("paru")
+        except subprocess.CalledProcessError as e:
+            print(f"Failed to install Paru: {e}")
+            return False
+        finally:
+            if askpass_file.exists():
+                askpass_file.unlink()
+            if temp_dir.exists():
+                shutil.rmtree(temp_dir, ignore_errors=True)
     try:
         subprocess.run(["chmod", "+x", str(script_path)], check=True)
         paru = open_terminal(script_path)
@@ -147,10 +200,11 @@ def open_terminal(command):
 def app_install(apps, command: str):
     if command == "paru":
         install_command= ["paru", "-S", "--skipreview", "--needed", "--quiet", "--color", "always"]
-        apps_helper(apps, install_command)
+        return apps_helper(apps, install_command)
     elif command == "pacman":
         install_command = ["pkexec", "pacman", "-S", "--needed", "--quiet", "--color", "always"]
-        apps_helper(apps, install_command)
+        return apps_helper(apps, install_command)
+    return None
 
 def remove_apps(apps, command: str):
     remove_command = []
@@ -160,23 +214,23 @@ def remove_apps(apps, command: str):
         remove_command.append("pkexec")
         remove_command.append("pacman")
     remove_command.extend(["-Rns", "--color", "always"])
-    apps_helper(apps, remove_command)
+    return apps_helper(apps, remove_command)
 
 
 def apps_helper(apps, command):
     try:
         if type(apps) is list:
-            open_terminal([*command, *apps])
+            return open_terminal([*command, *apps])
         else:
-            open_terminal([*command, apps])
+            return open_terminal([*command, apps])
     except Exception as e:
         print(e)
         return False
 
 
-def add_samba_drive(share_path, mount_point, username, password):
+def add_samba_drive(share_path, mount_point, username, password, sudo_password=None):
     """Add a Samba network drive to fstab and create .smbcredentials."""
-    cred_file = generate_unique_root_cred_path()
+    cred_file = generate_unique_cred_path()
 
     # Create credentials file
     try:
@@ -190,8 +244,17 @@ def add_samba_drive(share_path, mount_point, username, password):
     # Run the setup script with pkexec
     try:
         script_path = Path(__file__).parent.parent / "scripts" / "setup_samba.sh"
-        subprocess.run(["pkexec", script_path, mount_point,
-                        share_path, cred_file], check=True)
+        if sudo_password:
+            subprocess.run(
+                ["sudo", "-S", str(script_path), mount_point, share_path, str(cred_file)],
+                input=sudo_password + "\n",
+                text=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                check=True
+            )
+        else:
+            subprocess.run(["pkexec", script_path, mount_point, share_path, str(cred_file)], check=True)
     except subprocess.CalledProcessError as e:
         print(f"Failed to setup Samba drive: {e}")
         return False
@@ -199,12 +262,15 @@ def add_samba_drive(share_path, mount_point, username, password):
     return True
 
 
-def generate_unique_root_cred_path(root_dir="/root", max_attempts=100):
+def generate_unique_cred_path(root_dir=None, max_attempts=100):
     """
     Create a unique random subdirectory under root_dir and return its
     .smbcredentials file path.
     """
+    if root_dir is None:
+        root_dir = Path.home().joinpath(".config", "arch-mysetup", "credentials")
     root_path = Path(root_dir)
+    root_path.mkdir(mode=0o700, parents=True, exist_ok=True)
     for _ in range(max_attempts):
         random_name = f"smbcred_{secrets.token_hex(6)}"
         candidate_dir = root_path / random_name

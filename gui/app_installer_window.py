@@ -4,9 +4,9 @@ from PyQt5.QtWidgets import (
     QListWidget, QListWidgetItem, QMessageBox, QLabel
 )
 
-from programs.apps_file import load_apps_from_file
+from programs.apps_file import load_apps_from_file, load_yaml
 from programs.installer_logic import (
-    is_app_installed, detect_install_method, app_install
+    is_app_installed, app_install
 )
 
 try:
@@ -35,6 +35,25 @@ class AppManagerWorker(QObject):
             self.error.emit(str(e))
 
 
+class InstallOperationWorker(QObject):
+    finished = pyqtSignal()
+    error = pyqtSignal(str)
+
+    def __init__(self, operations):
+        super().__init__()
+        self.operations = operations
+
+    def run(self):
+        try:
+            for apps, method in self.operations:
+                process = app_install(apps, method)
+                if process and hasattr(process, "wait"):
+                    process.wait()
+            self.finished.emit()
+        except Exception as e:
+            self.error.emit(str(e))
+
+
 class ArchAppInstaller(QMainWindow):
     def __init__(self, setup_window):
         super().__init__()
@@ -44,6 +63,8 @@ class ArchAppInstaller(QMainWindow):
         self.back_lbl = None
         self.thread = None
         self.worker = None
+        self.action_thread = None
+        self.action_worker = None
         self.refresh_button = None
         self.install_button = None
         self.select_all_button = None
@@ -193,6 +214,9 @@ class ArchAppInstaller(QMainWindow):
 
     def closeEvent(self, event):
         self.stop_loading_animation()
+        if self.action_thread and self.action_thread.isRunning():
+            self.action_thread.quit()
+            self.action_thread.wait(3000)
         if self.thread and self.thread.isRunning():
             # 1. Ask the thread to stop
             self.thread.quit()
@@ -245,27 +269,60 @@ class ArchAppInstaller(QMainWindow):
                 QMessageBox.Yes | QMessageBox.No
             )
             if confirm == QMessageBox.Yes:
-                if len(selected_apps) > 1:
-                    pacman_list = []
-                    paru_list = []
-                    for app in selected_apps:
-                        method = detect_install_method(app)
-                        if method == "paru":
-                            paru_list.append(app)
-                        elif method == "pacman":
-                            pacman_list.append(app)
-                    if pacman_list:
-                        app_install(pacman_list, "pacman")
-                    if paru_list:
-                        app_install(paru_list, "paru")
-                else:
-                    for app in selected_apps:
-                        method = detect_install_method(app)
-                        app_install(app, method)
+                yaml_source_map = self.get_yaml_source_map()
+                pacman_list = []
+                paru_list = []
+                unknown_apps = []
+                for app in selected_apps:
+                    method = self.get_install_method_from_source(yaml_source_map.get(app))
+                    if method == "paru":
+                        paru_list.append(app)
+                    elif method == "pacman":
+                        pacman_list.append(app)
+                    else:
+                        unknown_apps.append(app)
+
+                operations = []
+                if pacman_list:
+                    operations.append((pacman_list, "pacman"))
+                if paru_list:
+                    operations.append((paru_list, "paru"))
+
+                if unknown_apps:
+                    QMessageBox.warning(
+                        self,
+                        "Unknown Source",
+                        f"Could not detect install source for: {', '.join(unknown_apps)}",
+                    )
+                if operations:
+                    self.start_install_operations(operations)
+                    return
         else:
             QMessageBox.warning(self, "No Selection",
                                 "No apps selected for installation.")
         self.load_apps_async()
+
+    @staticmethod
+    def get_install_method_from_source(source):
+        if not source:
+            return None
+        normalized = str(source).strip().lower()
+        if normalized in {"pacman", "official", "repo", "repository"}:
+            return "pacman"
+        if normalized in {"paru", "aur"}:
+            return "paru"
+        return None
+
+    @staticmethod
+    def get_yaml_source_map():
+        yaml_data = load_yaml()
+        source_map = {}
+        for app in yaml_data:
+            name = app.get("name")
+            if not name:
+                continue
+            source_map[name] = app.get("source")
+        return source_map
 
     def update_ui_with_apps(self, all_apps, uninstalled_apps):
         """The single point of entry for your UI data"""
@@ -315,3 +372,49 @@ class ArchAppInstaller(QMainWindow):
     def stop_loading_animation(self):
         if self.loading_timer and self.loading_timer.isActive():
             self.loading_timer.stop()
+
+    def start_install_operations(self, operations):
+        if self.action_thread and self.action_thread.isRunning():
+            return
+
+        self.install_button.setEnabled(False)
+        self.refresh_button.setEnabled(False)
+        self.select_all_button.setEnabled(False)
+        self.app_editor_btn.setEnabled(False)
+        self.loading_label.show()
+        self.start_loading_animation("Waiting installation to finish")
+
+        self.action_thread = QThread()
+        self.action_worker = InstallOperationWorker(operations)
+        self.action_worker.moveToThread(self.action_thread)
+        self.action_thread.started.connect(self.action_worker.run)
+        self.action_worker.finished.connect(self.on_install_operations_finished)
+        self.action_worker.error.connect(self.on_install_operations_error)
+        self.action_worker.finished.connect(self.action_thread.quit)
+        self.action_worker.finished.connect(self.action_worker.deleteLater)
+        self.action_thread.finished.connect(self.action_thread.deleteLater)
+        self.action_thread.finished.connect(self.cleanup_action_thread)
+        self.action_thread.start()
+
+    def on_install_operations_finished(self):
+        self.stop_loading_animation()
+        self.loading_label.hide()
+        self.install_button.setEnabled(True)
+        self.refresh_button.setEnabled(True)
+        self.select_all_button.setEnabled(True)
+        self.app_editor_btn.setEnabled(True)
+        self.load_apps_async()
+
+    def on_install_operations_error(self, error_message):
+        self.stop_loading_animation()
+        self.loading_label.hide()
+        self.install_button.setEnabled(True)
+        self.refresh_button.setEnabled(True)
+        self.select_all_button.setEnabled(True)
+        self.app_editor_btn.setEnabled(True)
+        QMessageBox.critical(self, "Install Error", f"Installation failed: {error_message}")
+        self.load_apps_async()
+
+    def cleanup_action_thread(self):
+        self.action_thread = None
+        self.action_worker = None

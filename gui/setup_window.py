@@ -16,17 +16,12 @@ sys.path.append(programs_dir)
 scripts_dir = str(Path(__file__).resolve().parent.parent.joinpath("scripts"))
 sys.path.append(scripts_dir)
 
-from detect_gpu import detect_gpu_vendor, install_drivers
+from detect_gpu import detect_gpu_vendor
 from programs.installer_logic import install_paru, add_samba_drive, command_exists
 try:
     from .theme import apply_dark_theme
 except ImportError:
     from theme import apply_dark_theme
-
-
-def gpu_driver_install():
-    vendor = detect_gpu_vendor()
-    install_drivers(vendor)
 
 
 def gpu_driver_installed():
@@ -119,6 +114,7 @@ class SetupWindow(QMainWindow):
         self.update_check_thread = None
         self.update_check_worker = None
         self.latest_tag = ""
+        self.sudo_password = None
         self.gpudrv_label = None
         self.gpudrv_status = None
         self.gpudrv_button = None
@@ -293,8 +289,30 @@ class SetupWindow(QMainWindow):
         if gpu_driver_installed():
             QMessageBox.information(self, "Installed", "GPU drivers are already installed.")
             return
-        gpu_driver_install()
-        self.update_gpu_status()
+        vendor = detect_gpu_vendor()
+        if vendor is None:
+            QMessageBox.warning(self, "GPU Not Detected", "Could not detect GPU vendor.")
+            return
+        if not self.ensure_sudo_authenticated():
+            return
+        packages = []
+        if vendor == "Intel":
+            packages = ["mesa", "lib32-mesa", "vulkan-intel", "lib32-vulkan-intel", "xf86-video-intel"]
+        elif vendor == "NVIDIA":
+            packages = ["nvidia", "nvidia-utils", "lib32-nvidia-utils"]
+        elif vendor == "AMD":
+            packages = ["mesa", "lib32-mesa", "vulkan-radeon", "lib32-vulkan-radeon", "xf86-video-amdgpu"]
+
+        if not packages:
+            QMessageBox.warning(self, "Unsupported GPU", f"No package rule for vendor: {vendor}")
+            return
+
+        try:
+            self.run_sudo_command(["pacman", "-S", "--needed", "--noconfirm", *packages])
+            QMessageBox.information(self, "Success", f"{vendor} driver packages installed.")
+            self.update_gpu_status()
+        except RuntimeError as e:
+            QMessageBox.critical(self, "Error", f"Failed to install GPU drivers: {e}")
 
     def update_paru_status(self):
         checkmark_path = Path(Path(__file__).parent.parent.resolve()).joinpath("icons/checkmark.svg")
@@ -310,11 +328,12 @@ class SetupWindow(QMainWindow):
             self.set_service_button_state(self.install_paru_button, installed=False)
 
     def handle_install_paru(self):
-        print(install_paru())
+        if not self.ensure_sudo_authenticated():
+            return
         if command_exists("paru"):
             QMessageBox.information(self, "Installed", "Paru is already installed!")
         else:
-            if install_paru():
+            if install_paru(self.sudo_password):
                 QMessageBox.information(self, "Success", "Paru installed successfully!")
                 self.update_paru_status()
             else:
@@ -359,7 +378,9 @@ class SetupWindow(QMainWindow):
             return
 
         try:
-            if add_samba_drive(share_path, mount_point, username, password):
+            if not self.ensure_sudo_authenticated():
+                return
+            if add_samba_drive(share_path, mount_point, username, password, sudo_password=self.sudo_password):
                 QMessageBox.information(self, "Success", "Network drive added successfully!")
             else:
                 QMessageBox.critical(self, "Error", "Failed to add network drive.")
@@ -471,3 +492,58 @@ class SetupWindow(QMainWindow):
             self.update_check_thread.quit()
             self.update_check_thread.wait(1500)
         super().closeEvent(event)
+
+    def ensure_sudo_authenticated(self):
+        if self.sudo_password is None:
+            password, ok = QInputDialog.getText(
+                self,
+                "Administrator Password",
+                "Enter your sudo password (used for this session only):",
+                QLineEdit.Password,
+            )
+            if not ok or not password:
+                return False
+            self.sudo_password = password
+
+        try:
+            self.run_sudo_command(["-v"], validate_only=True)
+            return True
+        except RuntimeError:
+            # Retry once if timestamp invalid / wrong cached password
+            password, ok = QInputDialog.getText(
+                self,
+                "Administrator Password",
+                "Password was rejected. Re-enter sudo password:",
+                QLineEdit.Password,
+            )
+            if not ok or not password:
+                self.sudo_password = None
+                return False
+            self.sudo_password = password
+            try:
+                self.run_sudo_command(["-v"], validate_only=True)
+                return True
+            except RuntimeError as e:
+                self.sudo_password = None
+                QMessageBox.critical(self, "Authentication Failed", str(e))
+                return False
+
+    def run_sudo_command(self, command, validate_only=False):
+        if self.sudo_password is None:
+            raise RuntimeError("Missing sudo password")
+
+        base = ["sudo", "-S", "-p", ""]
+        full_command = base + command
+        result = subprocess.run(
+            full_command,
+            input=self.sudo_password + "\n",
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+        if result.returncode != 0:
+            error_text = result.stderr.strip() or "sudo command failed"
+            raise RuntimeError(error_text)
+        if validate_only:
+            return None
+        return result

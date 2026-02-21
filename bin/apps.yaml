@@ -183,6 +183,11 @@
   source: Unknown
   category: Utilities
   conflicts: []
+- name: google-chrome
+  description: Default description for google-chrome
+  source: pacman
+  category: Utilities
+  conflicts: []
 - name: goverlay
   description: Default description for goverlay
   source: Unknown
@@ -661,6 +666,11 @@
 - name: snapchat
   description: Default description for snapchat
   source: Unknown
+  category: Utilities
+  conflicts: []
+- name: spotiflac-bin
+  description: Default description for spotiflac-bin
+  source: paru
   category: Utilities
   conflicts: []
 - name: sshpilot
