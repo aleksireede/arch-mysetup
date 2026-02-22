@@ -12,6 +12,7 @@ if project_root not in sys.path:
 from programs.apps_file import load_yaml
 from gui.app_uninstaller import AppUninstaller
 from gui.app_installer_window import ArchAppInstaller
+from gui.apps_page import AppsPage
 from gui.setup_window import SetupWindow
 from gui.advanced_tweaks import AdvancedTweaks
 
@@ -25,20 +26,30 @@ load_yaml()
 app_installer_window = None
 app_uninstaller_window = None
 advanced_tweaks_window = None
+apps_page_window = None
+
+
+def ensure_apps_page():
+    global apps_page_window
+    if apps_page_window is None:
+        apps_page_window = AppsPage(setup_window)
+    return apps_page_window
 
 
 def open_app_installer():
     global app_installer_window
+    apps_page = ensure_apps_page()
     if app_installer_window is None:
-        app_installer_window = ArchAppInstaller(setup_window)
+        app_installer_window = ArchAppInstaller(apps_page)
     app_installer_window.show()
     setup_window.hide()
 
 
 def open_app_uninstaller():
     global app_uninstaller_window
+    apps_page = ensure_apps_page()
     if app_uninstaller_window is None:
-        app_uninstaller_window = AppUninstaller(setup_window)
+        app_uninstaller_window = AppUninstaller(apps_page)
     app_uninstaller_window.show()
     setup_window.hide()
 
@@ -51,11 +62,18 @@ def open_advanced_tweaks():
     setup_window.hide()
 
 
+def open_apps_page():
+    apps_page = ensure_apps_page()
+    apps_page.show()
+    setup_window.hide()
+
+
 def main():
     # Configure the setup window to call other windows
     setup_window.open_installer.connect(open_app_installer)
     setup_window.open_uninstaller.connect(open_app_uninstaller)
     setup_window.open_advanced_tweaks.connect(open_advanced_tweaks)
+    setup_window.open_apps_page.connect(open_apps_page)
     # Show setup window
     setup_window.show()
 

@@ -10,13 +10,13 @@ from programs.installer_logic import (
 )
 
 try:
-    from .applist_editor_dialog import AppListEditorDialog
+    # from .applist_editor_dialog import AppListEditorDialog
     from .ui_helpers import create_back_button, create_select_refresh_row
-    from .theme import apply_dark_theme
+    from .theme import apply_dark_theme, create_page_header
 except ImportError:
-    from applist_editor_dialog import AppListEditorDialog
+    # from applist_editor_dialog import AppListEditorDialog
     from ui_helpers import create_back_button, create_select_refresh_row
-    from theme import apply_dark_theme
+    from theme import apply_dark_theme, create_page_header
 
 
 class AppManagerWorker(QObject):
@@ -68,7 +68,7 @@ class ArchAppInstaller(QMainWindow):
         self.refresh_button = None
         self.install_button = None
         self.select_all_button = None
-        self.app_editor_btn = None
+        # self.app_editor_btn = None
         self.back_button = None
         self.list_widget = None
         self.loading_label = None
@@ -82,7 +82,8 @@ class ArchAppInstaller(QMainWindow):
         self.loading_dot_count = 0
         self.setup_window = setup_window
         self.setWindowTitle("Arch App Installer")
-        self.setGeometry(100, 100, 500, 400)
+        self.setGeometry(100, 100, 700, 760)
+        self.setMinimumSize(660, 700)
         self.apps = []
         self.selected_apps = []
         self.init_ui()
@@ -112,20 +113,20 @@ class ArchAppInstaller(QMainWindow):
         self.back_button_container, self.back_btn, self.back_lbl, self.frame_layout = create_back_button(
             self.go_back_to_setup
         )
+        header_widget = create_page_header(self.back_button_container, "Install")
 
         # Buttons
-        self.app_editor_btn = QPushButton("App List Editor")
-        self.app_editor_btn.clicked.connect(self.app_list_editor_dialog)
+        # self.app_editor_btn = QPushButton("App List Editor")
+        # self.app_editor_btn.clicked.connect(self.app_list_editor_dialog)
 
         self.install_button = QPushButton("Install Selected")
         self.install_button.clicked.connect(self.install_selected)
         self.install_button.setFixedWidth(200)
 
-        # second layout
-        self.secondary_layout.addWidget(self.back_button_container)
-        self.secondary_layout.addStretch(1)
-        self.secondary_layout.addWidget(self.app_editor_btn)
-        self.secondary_layout.addStretch(2)
+        # app_editor_row = QHBoxLayout()
+        # app_editor_row.addStretch()
+        # app_editor_row.addWidget(self.app_editor_btn)
+        # app_editor_row.addStretch()
 
         self.third_layout, self.select_all_button, self.refresh_button = create_select_refresh_row(
             self.toggle_select_all_apps, self.load_apps_async
@@ -134,7 +135,9 @@ class ArchAppInstaller(QMainWindow):
         self.bottom_layout.addWidget(self.install_button)
 
         # Add loading label and list widget
-        self.main_layout.addLayout(self.secondary_layout)
+        self.main_layout.addWidget(header_widget)
+        self.main_layout.addSpacing(10)
+        # self.main_layout.addLayout(app_editor_row)
         self.main_layout.addLayout(self.third_layout)
         self.main_layout.addSpacing(20)
         self.main_layout.addWidget(self.loading_label)
@@ -344,11 +347,11 @@ class ArchAppInstaller(QMainWindow):
                 item.setCheckState(state)
                 self.list_widget.addItem(item)
 
-    def app_list_editor_dialog(self):
-        dialog = AppListEditorDialog(self, self.apps)
-        if dialog.exec():
-            self.apps = dialog.get_apps()
-            self.load_apps_async()
+    # def app_list_editor_dialog(self):
+    #     dialog = AppListEditorDialog(self, self.apps)
+    #     if dialog.exec():
+    #         self.apps = dialog.get_apps()
+    #         self.load_apps_async()
 
     def go_back_to_setup(self):
         self.setup_window.show()
@@ -380,7 +383,7 @@ class ArchAppInstaller(QMainWindow):
         self.install_button.setEnabled(False)
         self.refresh_button.setEnabled(False)
         self.select_all_button.setEnabled(False)
-        self.app_editor_btn.setEnabled(False)
+        # self.app_editor_btn.setEnabled(False)
         self.loading_label.show()
         self.start_loading_animation("Waiting installation to finish")
 
@@ -402,7 +405,7 @@ class ArchAppInstaller(QMainWindow):
         self.install_button.setEnabled(True)
         self.refresh_button.setEnabled(True)
         self.select_all_button.setEnabled(True)
-        self.app_editor_btn.setEnabled(True)
+        # self.app_editor_btn.setEnabled(True)
         self.load_apps_async()
 
     def on_install_operations_error(self, error_message):
@@ -411,7 +414,7 @@ class ArchAppInstaller(QMainWindow):
         self.install_button.setEnabled(True)
         self.refresh_button.setEnabled(True)
         self.select_all_button.setEnabled(True)
-        self.app_editor_btn.setEnabled(True)
+        # self.app_editor_btn.setEnabled(True)
         QMessageBox.critical(self, "Install Error", f"Installation failed: {error_message}")
         self.load_apps_async()
 

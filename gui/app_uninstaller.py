@@ -12,10 +12,10 @@ from programs.installer_logic import (list_all_installed_apps, remove_apps)
 
 try:
     from .ui_helpers import create_back_button, create_select_refresh_row
-    from .theme import apply_dark_theme
+    from .theme import apply_dark_theme, create_page_header
 except ImportError:
     from ui_helpers import create_back_button, create_select_refresh_row
-    from theme import apply_dark_theme
+    from theme import apply_dark_theme, create_page_header
 
 
 class AppListWorker(QObject):
@@ -75,7 +75,8 @@ class AppUninstaller(QMainWindow):
         self.previous_window = setup_window  # Store the reference
         # Window title text
         self.setWindowTitle("Arch App Uninstaller")
-        self.setGeometry(100, 100, 500, 400)
+        self.setGeometry(100, 100, 700, 760)
+        self.setMinimumSize(660, 700)
         # app list
         self.apps = []
         self.init_ui()
@@ -100,14 +101,11 @@ class AppUninstaller(QMainWindow):
         self.back_button_container, self.back_btn, self.back_lbl, self.frame_layout = create_back_button(
             self.go_back_to_setup
         )
+        header_widget = create_page_header(self.back_button_container, "Uninstall")
 
         self.install_button = QPushButton("Remove Selected")
         self.install_button.clicked.connect(self.remove_selected)
         self.install_button.setFixedWidth(200)
-
-        # second layout
-        self.secondary_layout.addWidget(self.back_button_container)
-        self.secondary_layout.addStretch()
 
         # select and refresh layout
         self.third_layout, self.select_all_button, self.refresh_button = create_select_refresh_row(
@@ -118,7 +116,7 @@ class AppUninstaller(QMainWindow):
         self.bottom_layout.addWidget(self.install_button)
 
         # add the layouts to the main one
-        self.main_layout.addLayout(self.secondary_layout)
+        self.main_layout.addWidget(header_widget)
         self.main_layout.addSpacing(20)
         self.main_layout.addLayout(self.app_layout)
         self.main_layout.addLayout(self.third_layout)

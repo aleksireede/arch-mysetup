@@ -1,26 +1,32 @@
 import subprocess
 from pathlib import Path
 
+from programs.config import (
+    ZEROCONF_DEST_PATH,
+    AIRPLAY_DEST_PATH,
+    XORG_KEYBOARD_CONF_PATH,
+    PACMAN_MIRRORLIST_PATH,
+    PACMAN_REFLECTOR_CONFIG_PATH,
+    ZEROCONF_TEMPLATE_PATH,
+    AIRPLAY_TEMPLATE_PATH,
+    XORG_KEYBOARD_TEMPLATE_PATH,
+    REFLECTOR_TEMPLATE_PATH,
+)
 from programs.installer_logic import command_exists
 from scripts.text_writer import write_text
 
-text_file_path = Path(__file__).parent.parent.resolve().joinpath("bin")
-
 # files
-zeroconf_dest_path = Path.home().joinpath(".config", "pipewire", "pipewire.conf.d",
-                                          "my-zeroconf-discover.conf").resolve()
-airplay_dest_path = Path.home().joinpath(
-    ".config", "pipewire", "pipewire.conf.d", "raop-discover.conf").resolve()
-xorg_keyboard_conf_path = Path("/etc/X11/xorg.conf.d/00-keyboard.conf")
-pacman_mirrorlist_path = Path("/etc/pacman.d/mirrorlist")
-pacman_reflector_config_path = Path("/etc/xdg/reflector/reflector.conf")
+zeroconf_dest_path = ZEROCONF_DEST_PATH
+airplay_dest_path = AIRPLAY_DEST_PATH
+xorg_keyboard_conf_path = XORG_KEYBOARD_CONF_PATH
+pacman_mirrorlist_path = PACMAN_MIRRORLIST_PATH
+pacman_reflector_config_path = PACMAN_REFLECTOR_CONFIG_PATH
 
 # texts
-zeroconf_text = text_file_path.joinpath("zeroconf.txt").read_text()
-airplay_text = text_file_path.joinpath("airplay.txt").read_text()
-xorg_keyboard_conf_text = text_file_path.joinpath(
-    "xorg_keyboard_layout.txt").read_text()
-reflector_text = text_file_path.joinpath("reflector.txt").read_text()
+zeroconf_text = ZEROCONF_TEMPLATE_PATH.read_text()
+airplay_text = AIRPLAY_TEMPLATE_PATH.read_text()
+xorg_keyboard_conf_text = XORG_KEYBOARD_TEMPLATE_PATH.read_text()
+reflector_text = REFLECTOR_TEMPLATE_PATH.read_text()
 
 
 def reflector_service_timer():

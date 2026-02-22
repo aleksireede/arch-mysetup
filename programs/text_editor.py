@@ -1,18 +1,32 @@
 import subprocess
 from pathlib import Path
 
+from programs.config import (
+    PACMAN_CONF_PATH,
+    BASH_EXTRA_PATH,
+    BASHRC_PATH,
+    FISH_CONFIG_PATH,
+    BASH_EXTRA_VERSION,
+    BASH_EXTRA_TEMPLATE_PATH,
+)
+
 # Arch / Pacman config
-pacman_conf = Path(r"/etc/pacman.conf")
+pacman_conf = PACMAN_CONF_PATH
 multilib_disabled = "#[multilib]\n#Include = /etc/pacman.d/mirrorlist"
 multilib_enabled = "[multilib]\nInclude = /etc/pacman.d/mirrorlist"
 
 # Bash config
-bash_extra_path = Path(Path.home().joinpath(".bash_extra"))
-bashrc_path = Path(Path.home().joinpath(".bashrc"))
+bash_extra_path = BASH_EXTRA_PATH
+bashrc_path = BASHRC_PATH
+fish_config_path = FISH_CONFIG_PATH
 bashrc_extra_text = 'if [ -f ~/.bash_extra ]; then\n. ~/.bash_extra\nfi'
-bash_profile_path = Path(Path.home().joinpath(".bash_profile"))
-bash_profile_bashrc_template = '[[ -f ~/.bashrc ]] && . ~/.bashrc'
-bash_extra_text = Path(__file__).parent.parent.resolve().joinpath("bin", "bash_extra.sh").read_text()
+bash_extra_version = BASH_EXTRA_VERSION
+_bash_extra_body = BASH_EXTRA_TEMPLATE_PATH.read_text().rstrip()
+bash_extra_text = (
+    f"# Managed by arch-mysetup\n"
+    f"# arch-mysetup-bash-extra-version: {bash_extra_version}\n\n"
+    f"{_bash_extra_body}\n"
+)
 
 
 # todo: find text and then read the whole line to edit eg. ParallelDownload=5 to edit the number
@@ -74,17 +88,18 @@ def enable_bash_extra():
             f.write("\n" + bashrc_extra_text + "\n")
         changed = True
 
-    # Ensure ~/.bash_profile sources ~/.bashrc using requested template.
-    if not bash_profile_path.exists():
-        bash_profile_path.touch()
-    bash_profile_data = bash_profile_path.read_text()
-    if bash_profile_bashrc_template not in bash_profile_data:
-        with open(bash_profile_path, "a") as f:
-            f.write("\n" + bash_profile_bashrc_template + "\n")
+    # Enable ~/.bash_extra source line in ~/.config/fish/config.fish
+    fish_config_path.parent.mkdir(parents=True, exist_ok=True)
+    if not fish_config_path.exists():
+        fish_config_path.touch()
+    fish_config_data = fish_config_path.read_text()
+    if bashrc_extra_text not in fish_config_data:
+        with open(fish_config_path, "a") as f:
+            f.write("\n" + bashrc_extra_text + "\n")
         changed = True
 
     if changed:
-        print("Enabled bash extra in ~/.bashrc and ensured ~/.bash_profile loads ~/.bashrc")
+        print("Enabled bash extra in ~/.bashrc and ~/.config/fish/config.fish")
     return changed
 
 
@@ -94,11 +109,19 @@ def write_bash_extra():
     If it already exists then it is updated.
     :rtype: None
     """
-    # Write or update ~/.bash_extra with repository content.
+    # Backwards-compatible wrapper for full overwrite updates.
+    update_bash_extra()
+
+
+def update_bash_extra():
+    """
+    Overwrite ~/.bash_extra with the latest managed template and version header.
+    :rtype: None
+    """
     if bash_extra_path.exists():
-        print("Updating extra bash configuration...")
+        print(f"Updating ~/.bash_extra to version {bash_extra_version}...")
     else:
-        print("Enabling extra bash configuration...")
+        print(f"Installing ~/.bash_extra version {bash_extra_version}...")
     bash_extra_path.write_text(bash_extra_text)
 
 

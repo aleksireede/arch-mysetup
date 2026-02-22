@@ -17,6 +17,7 @@ scripts_dir = str(Path(__file__).resolve().parent.parent.joinpath("scripts"))
 sys.path.append(scripts_dir)
 
 from detect_gpu import detect_gpu_vendor
+from programs.config import CHECKMARK_ICON_PATH, RED_X_ICON_PATH
 from programs.installer_logic import install_paru, add_samba_drive, command_exists
 try:
     from .theme import apply_dark_theme
@@ -98,6 +99,7 @@ class SetupWindow(QMainWindow):
     open_installer = pyqtSignal()  # Signal to open the installer
     open_uninstaller = pyqtSignal()
     open_advanced_tweaks = pyqtSignal()
+    open_apps_page = pyqtSignal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -121,6 +123,7 @@ class SetupWindow(QMainWindow):
         self.gpudrv_layout = None
         self.install_button = None
         self.remove_button = None
+        self.apps_page_button = None
         self.add_network_drive_button = None
         self.install_paru_button = None
         # end buttons
@@ -211,13 +214,9 @@ class SetupWindow(QMainWindow):
         self.add_network_drive_button = QPushButton("Add Network Drive (Samba)")
         self.add_network_drive_button.clicked.connect(self.add_network_drive)
 
-        # Install apps button
-        self.install_button = QPushButton("Install apps")
-        self.install_button.clicked.connect(self.open_installer.emit)
-
-        # Uninstall apps button
-        self.remove_button = QPushButton("Uninstall")
-        self.remove_button.clicked.connect(self.open_uninstaller.emit)
+        # Apps page button
+        self.apps_page_button = QPushButton("Apps")
+        self.apps_page_button.clicked.connect(self.open_apps_page.emit)
 
         self.advanced_tweak_btn = QPushButton("Advanced Tweaks")
         self.advanced_tweak_btn.clicked.connect(self.open_advanced_tweaks.emit)
@@ -231,11 +230,9 @@ class SetupWindow(QMainWindow):
         self.gpudrv_button.setFixedWidth(service_btn_width)
         self.update_button.setFixedWidth(service_btn_width)
         self.add_network_drive_button.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-        self.install_button.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-        self.remove_button.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        self.apps_page_button.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         bottom_buttons = [
-            self.install_button,
-            self.remove_button,
+            self.apps_page_button,
             self.add_network_drive_button,
             self.advanced_tweak_btn,
         ]
@@ -247,8 +244,7 @@ class SetupWindow(QMainWindow):
         self.bottom_layout = QVBoxLayout()
         self.bottom_layout.setSpacing(10)
         # self.bottom_layout.addStretch()
-        self.bottom_layout.addWidget(self.install_button)
-        self.bottom_layout.addWidget(self.remove_button)
+        self.bottom_layout.addWidget(self.apps_page_button)
         self.bottom_layout.addWidget(self.add_network_drive_button)
         self.bottom_layout.addWidget(self.advanced_tweak_btn)
         # self.bottom_layout.addStretch()
@@ -274,14 +270,12 @@ class SetupWindow(QMainWindow):
         self.start_update_check()
 
     def update_gpu_status(self):
-        checkmark_path = Path(Path(__file__).parent.parent.resolve()).joinpath("icons/checkmark.svg")
-        red_x_path = Path(Path(__file__).parent.parent.resolve()).joinpath("icons/red_x.svg")
         if gpu_driver_installed():
-            self.gpudrv_status.setPixmap(QPixmap(str(checkmark_path)).scaled(20, 20))
+            self.gpudrv_status.setPixmap(QPixmap(str(CHECKMARK_ICON_PATH)).scaled(20, 20))
             self.gpudrv_button.setText("Installed")
             self.set_service_button_state(self.gpudrv_button, installed=True)
         else:
-            self.gpudrv_status.setPixmap(QPixmap(str(red_x_path)).scaled(20, 20))
+            self.gpudrv_status.setPixmap(QPixmap(str(RED_X_ICON_PATH)).scaled(20, 20))
             self.gpudrv_button.setText("Install GPU Drivers")
             self.set_service_button_state(self.gpudrv_button, installed=False)
 
@@ -315,15 +309,13 @@ class SetupWindow(QMainWindow):
             QMessageBox.critical(self, "Error", f"Failed to install GPU drivers: {e}")
 
     def update_paru_status(self):
-        checkmark_path = Path(Path(__file__).parent.parent.resolve()).joinpath("icons/checkmark.svg")
-        red_x_path = Path(Path(__file__).parent.parent.resolve()).joinpath("icons/red_x.svg")
         """Update the Paru status icon or text."""
         if command_exists("paru"):
-            self.paru_status.setPixmap(QPixmap(str(checkmark_path)).scaled(20, 20))
+            self.paru_status.setPixmap(QPixmap(str(CHECKMARK_ICON_PATH)).scaled(20, 20))
             self.install_paru_button.setText("Installed")
             self.set_service_button_state(self.install_paru_button, installed=True)
         else:
-            self.paru_status.setPixmap(QPixmap(str(red_x_path)).scaled(20, 20))
+            self.paru_status.setPixmap(QPixmap(str(RED_X_ICON_PATH)).scaled(20, 20))
             self.install_paru_button.setText("Install Paru")
             self.set_service_button_state(self.install_paru_button, installed=False)
 
@@ -464,20 +456,17 @@ class SetupWindow(QMainWindow):
         self.update_check_worker = None
 
     def set_update_indicator(self, state):
-        checkmark_path = Path(Path(__file__).parent.parent.resolve()).joinpath("icons/checkmark.svg")
-        red_x_path = Path(Path(__file__).parent.parent.resolve()).joinpath("icons/red_x.svg")
-
         if state == "latest":
-            self.update_status_icon.setPixmap(QPixmap(str(checkmark_path)).scaled(18, 18))
+            self.update_status_icon.setPixmap(QPixmap(str(CHECKMARK_ICON_PATH)).scaled(18, 18))
             self.update_state_label.setText("Up to Date")
         elif state == "available":
-            self.update_status_icon.setPixmap(QPixmap(str(red_x_path)).scaled(18, 18))
+            self.update_status_icon.setPixmap(QPixmap(str(RED_X_ICON_PATH)).scaled(18, 18))
             self.update_state_label.setText("Update Available")
         elif state == "checking":
             self.update_status_icon.clear()
             self.update_state_label.setText("Checking...")
         else:
-            self.update_status_icon.setPixmap(QPixmap(str(red_x_path)).scaled(18, 18))
+            self.update_status_icon.setPixmap(QPixmap(str(RED_X_ICON_PATH)).scaled(18, 18))
             self.update_state_label.setText("Check Failed")
 
     @staticmethod

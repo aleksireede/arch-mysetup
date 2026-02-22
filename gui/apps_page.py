@@ -1,0 +1,87 @@
+from PyQt5.QtWidgets import (
+    QMainWindow,
+    QWidget,
+    QVBoxLayout,
+    QHBoxLayout,
+    QPushButton,
+)
+
+from programs.apps_file import load_apps_from_file
+
+try:
+    from .applist_editor_dialog import AppListEditorDialog
+    from .ui_helpers import create_back_button
+    from .theme import apply_dark_theme, create_page_header
+except ImportError:
+    from applist_editor_dialog import AppListEditorDialog
+    from ui_helpers import create_back_button
+    from theme import apply_dark_theme, create_page_header
+
+
+class AppsPage(QMainWindow):
+    BUTTON_WIDTH = 320
+
+    def __init__(self, setup_window=None):
+        super().__init__()
+        self.setup_window = setup_window
+        self.back_button_container = None
+        self.setWindowTitle("Apps")
+        self.setGeometry(100, 100, 900, 600)
+        self.setMinimumSize(860, 560)
+        self.init_ui()
+
+    def init_ui(self):
+        central = QWidget()
+        self.setCentralWidget(central)
+        apply_dark_theme(self)
+        layout = QVBoxLayout(central)
+
+        self.back_button_container, _, _, _ = create_back_button(self.go_back_to_setup)
+        header_widget = create_page_header(self.back_button_container, "Apps")
+
+        container_layout = QVBoxLayout()
+
+        install_btn = QPushButton("Install Apps")
+        install_btn.setFixedWidth(self.BUTTON_WIDTH)
+        install_btn.clicked.connect(self.open_installer)
+
+        uninstall_btn = QPushButton("Uninstall Apps")
+        uninstall_btn.setFixedWidth(self.BUTTON_WIDTH)
+        uninstall_btn.clicked.connect(self.open_uninstaller)
+
+        editor_btn = QPushButton("Open App List Editor")
+        editor_btn.setFixedWidth(self.BUTTON_WIDTH)
+        editor_btn.clicked.connect(self.open_app_list_editor)
+
+        for btn in (install_btn, uninstall_btn, editor_btn):
+            row = QHBoxLayout()
+            row.addStretch()
+            row.addWidget(btn)
+            row.addStretch()
+            container_layout.addLayout(row)
+
+        container_layout.addStretch()
+
+        layout.addWidget(header_widget)
+        layout.addSpacing(12)
+        layout.addLayout(container_layout)
+
+    def go_back_to_setup(self):
+        if self.setup_window:
+            self.setup_window.show()
+        self.hide()
+
+    def open_installer(self):
+        if self.setup_window:
+            self.hide()
+            self.setup_window.open_installer.emit()
+
+    def open_uninstaller(self):
+        if self.setup_window:
+            self.hide()
+            self.setup_window.open_uninstaller.emit()
+
+    def open_app_list_editor(self):
+        apps = load_apps_from_file()
+        dialog = AppListEditorDialog(self, apps)
+        dialog.exec()
