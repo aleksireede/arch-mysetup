@@ -1,5 +1,9 @@
 alias localip="ifconfig | grep inet"
-alias neofetch="neofetch | lolcat"
+alias extip='echo $(dig -4 TXT +short o-o.myaddr.l.google.com @ns1.google.com)'
+
+alias neofetch="fastfetch | lolcat"
+alias fastfetch="fastfetch | lolcat"
+
 alias path='echo -e "${PATH//:/\\n}"'
 alias cd..="cd .."
 alias ..="cd .."
@@ -8,9 +12,12 @@ alias gh="history|grep"
 mnt() {
     mount | awk -F' ' '{ printf "%s\t%s\n",$1,$3; }' | column -t | grep '^/dev/' | sort
 }
-alias extip='echo $(dig -4 TXT +short o-o.myaddr.l.google.com @ns1.google.com)'
-alias listaur="paru -Qem"
+
+alias listaur="paru -Qemq | lolcat"
+alias listpkg="paru -Qenq | lolcat"
 alias update="paru -Suy --skipreview --quiet --needed --color always"
+alias install="paru -S --skipreview --quiet --needed --color always"
+alias remove="paru -Rns --quiet --color always"
 
 export QT_PLUGIN_PATH=/usr/lib/qt/plugins
 export QT_QPA_PLATFORM=wayland

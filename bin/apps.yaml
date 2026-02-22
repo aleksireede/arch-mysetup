@@ -98,6 +98,11 @@
   source: Unknown
   category: Utilities
   conflicts: []
+- name: efibootmgr
+  description: Default description for efibootmgr
+  source: pacman
+  category: Utilities
+  conflicts: []
 - name: expac
   description: Default description for expac
   source: pacman
@@ -105,6 +110,11 @@
   conflicts: []
 - name: eza
   description: Default description for eza
+  source: pacman
+  category: Utilities
+  conflicts: []
+- name: fastfetch
+  description: Default description for fastfetch
   source: pacman
   category: Utilities
   conflicts: []
@@ -183,11 +193,6 @@
   source: Unknown
   category: Utilities
   conflicts: []
-- name: google-chrome
-  description: Default description for google-chrome
-  source: pacman
-  category: Utilities
-  conflicts: []
 - name: goverlay
   description: Default description for goverlay
   source: Unknown
@@ -256,6 +261,11 @@
 - name: i2c-tools
   description: Default description for i2c-tools
   source: Unknown
+  category: Utilities
+  conflicts: []
+- name: imagemagick
+  description: Default description for imagemagick
+  source: pacman
   category: Utilities
   conflicts: []
 - name: img2pdf
@@ -478,11 +488,6 @@
   source: Unknown
   category: Utilities
   conflicts: []
-- name: neofetch
-  description: Default description for neofetch
-  source: Unknown
-  category: Utilities
-  conflicts: []
 - name: net-tools
   description: Default description for net-tools
   source: Unknown
@@ -643,6 +648,11 @@
   source: Unknown
   category: Utilities
   conflicts: []
+- name: refind
+  description: Default description for refind
+  source: pacman
+  category: Utilities
+  conflicts: []
 - name: reflector
   description: Default description for reflector
   source: pacman
@@ -650,6 +660,11 @@
   conflicts: []
 - name: rpi-imager
   description: Default description for rpi-imager
+  source: pacman
+  category: Utilities
+  conflicts: []
+- name: sbctl
+  description: Default description for sbctl
   source: pacman
   category: Utilities
   conflicts: []
@@ -718,9 +733,9 @@
   source: Unknown
   category: Utilities
   conflicts: []
-- name: visual-studio-code-electron-bin
-  description: Default description for visual-studio-code-electron-bin
-  source: Unknown
+- name: visual-studio-code-bin
+  description: Default description for visual-studio-code-bin
+  source: pacman
   category: Utilities
   conflicts: []
 - name: vkbasalt

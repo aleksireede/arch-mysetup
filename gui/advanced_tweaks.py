@@ -1,6 +1,6 @@
 import subprocess
 
-from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import (
     QMainWindow,
     QWidget,
@@ -8,51 +8,52 @@ from PyQt5.QtWidgets import (
     QHBoxLayout,
     QPushButton,
     QMessageBox,
-    QListWidget,
-    QListWidgetItem,
     QLabel,
     QFrame,
 )
 
 try:
     from .ui_helpers import create_back_button
-    from .theme import apply_dark_theme
+    from .theme import apply_dark_theme, create_page_header, apply_status_icon
+    from .pacman_config_window import PacmanConfigWindow
+    from .bash_config_window import BashConfigWindow
 except ImportError:
     from ui_helpers import create_back_button
-    from theme import apply_dark_theme
+    from theme import apply_dark_theme, create_page_header, apply_status_icon
+    from pacman_config_window import PacmanConfigWindow
+    from bash_config_window import BashConfigWindow
 
 from scripts.extra import (
-    reflector_service_timer,
     git_keystore,
     zeroconf_discover_pw,
     airplay_discover_pw,
-    xorg_keyboard_layout_fi,
 )
-from programs.text_editor import (
-    write_bash_extra,
-    enable_bash_extra,
-    enable_multilib,
-    pacman_enable_color,
+from programs.config import (
+    CHECKMARK_ICON_PATH,
+    RED_X_ICON_PATH,
+    BLUE_RIGHT_ARROW_ICON_PATH,
+    ZEROCONF_DEST_PATH,
+    AIRPLAY_DEST_PATH,
 )
 
 
 class AdvancedTweaks(QMainWindow):
+    ADV_BUTTON_WIDTH = 300
+
     def __init__(self, setup_window=None):
         super().__init__()
-        self.system_tweak_list = None
-        self.apply_tweaks_btn = None
+        self.back_button_container = None
+        self.status_labels = {}
+        self.tweaks = []
         self.setup_window = setup_window
+        self.pacman_config_window = None
+        self.bash_config_window = None
+        self.checkmark_path = CHECKMARK_ICON_PATH
+        self.red_x_path = RED_X_ICON_PATH
+
         self.setWindowTitle("Advanced Tweaks")
         self.setGeometry(100, 100, 940, 700)
         self.setMinimumSize(900, 660)
-        self.system_tweaks = {
-            "Enable Parallel Downloads (Pacman)": "pkexec sed -i 's/^#ParallelDownloads/ParallelDownloads/' /etc/pacman.conf",
-            "Optimize Mirrorlist (Reflector)": "pkexec reflector --latest 50 --number 20 --sort delay --save /etc/pacman.d/mirrorlist",
-            "Install Paru (Rust AUR Helper)": "pacman -Qi paru || (pkexec pacman -S --needed base-devel git && temp_dir=$(mktemp -d) && git clone https://aur.archlinux.org/paru.git $temp_dir && cd $temp_dir && makepkg -si --noconfirm --noprogressbar && rm -rf $temp_dir)",
-            "Clean Pacman Cache": "pkexec pacman -Sc --noconfirm",
-            "Disable Bluetooth Autoswitch (Pipewire/WirePlumber)": "current=$(wpctl settings bluetooth.autoswitch-to-headset-profile); if [[ \"$current\" != *\"false\"* ]]; then wpctl settings --save bluetooth.autoswitch-to-headset-profile false; fi",
-            "Trim SSD (Periodic)": "pkexec systemctl enable fstrim.timer",
-        }
         self.init_ui()
 
     def init_ui(self):
@@ -63,94 +64,72 @@ class AdvancedTweaks(QMainWindow):
         content_layout = QHBoxLayout()
 
         self.back_button_container, _, _, _ = create_back_button(self.go_back_to_setup)
+        header_widget = create_page_header(self.back_button_container, "Advanced Tweaks")
 
-        self.reflector_btn = QPushButton("Enable Reflector Timer")
-        self.reflector_btn.clicked.connect(
-            lambda: self.run_tweak(reflector_service_timer, "Reflector timer task completed.")
-        )
+        self.tweaks = [
+            ("git_keystore", "Enable Git Credential Store", git_keystore, "Git credential helper task completed.", self.is_git_keystore_enabled),
+            ("zeroconf", "Enable PipeWire Zeroconf Discover", zeroconf_discover_pw, "Zeroconf discover task completed.", self.is_zeroconf_enabled),
+            ("airplay", "Enable PipeWire AirPlay Discover", airplay_discover_pw, "AirPlay discover task completed.", self.is_airplay_enabled),
+        ]
 
-        self.git_keystore_btn = QPushButton("Enable Git Credential Store")
-        self.git_keystore_btn.clicked.connect(
-            lambda: self.run_tweak(git_keystore, "Git credential helper task completed.")
-        )
+        tweaks_container = QFrame()
+        tweaks_layout = QVBoxLayout(tweaks_container)
 
-        self.zeroconf_btn = QPushButton("Enable PipeWire Zeroconf Discover")
-        self.zeroconf_btn.clicked.connect(
-            lambda: self.run_tweak(zeroconf_discover_pw, "Zeroconf discover task completed.")
-        )
+        pacman_page_button = QPushButton("Open Page: Pacman Config")
+        pacman_page_button.setIcon(QIcon(str(BLUE_RIGHT_ARROW_ICON_PATH)))
+        pacman_page_button.setFixedWidth(self.ADV_BUTTON_WIDTH)
+        pacman_page_button.clicked.connect(self.open_pacman_config)
+        pacman_row = QHBoxLayout()
+        pacman_row.addStretch()
+        pacman_row.addWidget(pacman_page_button)
+        pacman_row.addStretch()
+        tweaks_layout.addLayout(pacman_row)
 
-        self.airplay_btn = QPushButton("Enable PipeWire AirPlay Discover")
-        self.airplay_btn.clicked.connect(
-            lambda: self.run_tweak(airplay_discover_pw, "AirPlay discover task completed.")
-        )
+        bash_page_button = QPushButton("Open Page: Bash/Fish Config")
+        bash_page_button.setIcon(QIcon(str(BLUE_RIGHT_ARROW_ICON_PATH)))
+        bash_page_button.setFixedWidth(self.ADV_BUTTON_WIDTH)
+        bash_page_button.clicked.connect(self.open_bash_config)
+        bash_row = QHBoxLayout()
+        bash_row.addStretch()
+        bash_row.addWidget(bash_page_button)
+        bash_row.addStretch()
+        tweaks_layout.addLayout(bash_row)
+        tweaks_layout.addSpacing(8)
 
-        self.keyboard_btn = QPushButton("Set Xorg Keyboard Layout (FI)")
-        self.keyboard_btn.clicked.connect(
-            lambda: self.run_tweak(xorg_keyboard_layout_fi, "Xorg keyboard layout task completed.")
-        )
+        for key, label, callback, success, _ in self.tweaks:
+            row_layout = QHBoxLayout()
+            button = QPushButton(label)
+            button.setFixedWidth(self.ADV_BUTTON_WIDTH)
+            button.clicked.connect(lambda _, cb=callback, msg=success: self.run_tweak(cb, msg))
+            status_label = QLabel()
+            status_label.setMinimumWidth(24)
+            status_label.setMaximumWidth(24)
+            row_layout.addStretch()
+            row_layout.addWidget(button)
+            row_layout.addWidget(status_label)
+            row_layout.addStretch()
+            tweaks_layout.addLayout(row_layout)
+            self.status_labels[key] = status_label
 
-        self.bash_extra_file_btn = QPushButton("Install/Update ~/.bash_extra")
-        self.bash_extra_file_btn.clicked.connect(
-            lambda: self.run_tweak(write_bash_extra, "~/.bash_extra updated.")
-        )
+        tweaks_layout.addStretch()
 
-        self.bashrc_hook_btn = QPushButton("Enable ~/.bash_extra in ~/.bashrc")
-        self.bashrc_hook_btn.clicked.connect(self.enable_bashrc_hook)
+        content_layout.addWidget(tweaks_container, 1)
 
-        self.multilib_btn = QPushButton("Enable Pacman Multilib")
-        self.multilib_btn.clicked.connect(
-            lambda: self.run_tweak(enable_multilib, "Multilib enable task completed.")
-        )
-
-        self.pacman_color_btn = QPushButton("Enable Pacman Color")
-        self.pacman_color_btn.clicked.connect(
-            lambda: self.run_tweak(pacman_enable_color, "Pacman color enable task completed.")
-        )
-
-        self.system_tweak_list = QListWidget()
-        for tweak_name in self.system_tweaks.keys():
-            item = QListWidgetItem(tweak_name)
-            item.setCheckState(Qt.Unchecked)
-            self.system_tweak_list.addItem(item)
-
-        self.apply_tweaks_btn = QPushButton("Apply Selected System Tweaks")
-        self.apply_tweaks_btn.clicked.connect(self.apply_selected_system_tweaks)
-
-        quick_actions_container = QFrame()
-        quick_actions_layout = QVBoxLayout(quick_actions_container)
-        quick_actions_title = QLabel("Quick Actions")
-        quick_actions_title.setStyleSheet("font-size: 16px; font-weight: 700;")
-        quick_actions_layout.addWidget(quick_actions_title)
-        quick_actions_layout.addWidget(self.reflector_btn)
-        quick_actions_layout.addWidget(self.git_keystore_btn)
-        quick_actions_layout.addWidget(self.zeroconf_btn)
-        quick_actions_layout.addWidget(self.airplay_btn)
-        quick_actions_layout.addWidget(self.keyboard_btn)
-        quick_actions_layout.addWidget(self.bash_extra_file_btn)
-        quick_actions_layout.addWidget(self.bashrc_hook_btn)
-        quick_actions_layout.addWidget(self.multilib_btn)
-        quick_actions_layout.addWidget(self.pacman_color_btn)
-        quick_actions_layout.addStretch()
-
-        system_tweaks_container = QFrame()
-        system_tweaks_layout = QVBoxLayout(system_tweaks_container)
-        system_tweaks_title = QLabel("Batch System Tweaks")
-        system_tweaks_title.setStyleSheet("font-size: 16px; font-weight: 700;")
-        system_tweaks_layout.addWidget(system_tweaks_title)
-        system_tweaks_layout.addWidget(self.system_tweak_list)
-        system_tweaks_layout.addWidget(self.apply_tweaks_btn)
-
-        content_layout.addWidget(quick_actions_container, 3)
-        content_layout.addWidget(system_tweaks_container, 2)
-
-        layout.addWidget(self.back_button_container)
+        layout.addWidget(header_widget)
         layout.addSpacing(12)
         layout.addLayout(content_layout)
+        self.refresh_statuses()
 
     def run_tweak(self, callback, success_message):
         try:
             callback()
             QMessageBox.information(self, "Done", success_message)
+            self.refresh_statuses()
+        except subprocess.CalledProcessError as e:
+            if e.returncode == 126:
+                QMessageBox.critical(self, "Authentication Failed", "Authentication failed.")
+            else:
+                QMessageBox.critical(self, "Error", f"Action failed: {e}")
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Action failed: {e}")
 
@@ -159,33 +138,48 @@ class AdvancedTweaks(QMainWindow):
             self.setup_window.show()
         self.hide()
 
-    def enable_bashrc_hook(self):
-        try:
-            changed = enable_bash_extra()
-            if changed:
-                QMessageBox.information(self, "Done", "Enabled ~/.bash_extra in ~/.bashrc and updated ~/.bash_profile template.")
-            else:
-                QMessageBox.information(self, "Already Enabled", "~/.bash_extra and ~/.bash_profile template are already enabled.")
-        except Exception as e:
-            QMessageBox.critical(self, "Error", f"Action failed: {e}")
+    def open_pacman_config(self):
+        if self.pacman_config_window is None:
+            self.pacman_config_window = PacmanConfigWindow(self)
+        self.pacman_config_window.refresh_statuses()
+        self.pacman_config_window.show()
+        self.hide()
 
-    def apply_selected_system_tweaks(self):
-        selected_items = [
-            self.system_tweak_list.item(i).text()
-            for i in range(self.system_tweak_list.count())
-            if self.system_tweak_list.item(i).checkState() == Qt.Checked
-        ]
+    def open_bash_config(self):
+        if self.bash_config_window is None:
+            self.bash_config_window = BashConfigWindow(self)
+        self.bash_config_window.refresh_statuses()
+        self.bash_config_window.show()
+        self.hide()
 
-        if not selected_items:
-            QMessageBox.warning(self, "No Selection", "Please check at least one tweak to apply.")
-            return
+    def is_git_keystore_enabled(self):
+        result = subprocess.run(
+            ["git", "config", "--global", "credential.helper"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            check=False,
+        )
+        if result.returncode not in (0, 1):
+            return None
+        return result.stdout.strip() == "store"
 
-        for item_text in selected_items:
-            cmd = self.system_tweaks[item_text]
+    def is_zeroconf_enabled(self):
+        return ZEROCONF_DEST_PATH.exists()
+
+    def is_airplay_enabled(self):
+        return AIRPLAY_DEST_PATH.exists()
+
+    def set_status_icon(self, label: QLabel, enabled):
+        apply_status_icon(label, enabled, self.checkmark_path, self.red_x_path)
+
+    def refresh_statuses(self):
+        for key, _, _, _, status_fn in self.tweaks:
+            label = self.status_labels.get(key)
+            if label is None:
+                continue
             try:
-                subprocess.run(cmd, shell=True, check=True)
-            except subprocess.CalledProcessError as e:
-                QMessageBox.critical(self, "Error", f"Failed to run: {item_text}\n{e}")
-                return
-
-        QMessageBox.information(self, "Finished", "Selected tweaks have been applied!")
+                enabled = status_fn()
+            except Exception:
+                enabled = None
+            self.set_status_icon(label, enabled)

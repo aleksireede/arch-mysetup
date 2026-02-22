@@ -1,3 +1,7 @@
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QPixmap
+from PyQt5.QtWidgets import QHBoxLayout, QVBoxLayout, QLabel, QWidget, QFrame
+
 APP_DARK_THEME = """
 QWidget {
     background-color: #0f141b;
@@ -76,8 +80,77 @@ QLabel#backButtonLabel, QPushButton#backButtonArrow {
     font-weight: bold;
     border: none;
 }
+QFrame#pageHeader {
+    background: qlineargradient(
+        x1: 0, y1: 0, x2: 1, y2: 0,
+        stop: 0 #ff4fd8,
+        stop: 0.33 #8b5cf6,
+        stop: 0.66 #22c55e,
+        stop: 1 #3b82f6
+    );
+    border: 1px solid #ffffff55;
+    border-radius: 10px;
+}
+QFrame#pageHeaderSeparator {
+    background-color: #ffffffdd;
+    border: none;
+}
 """
 
 
 def apply_dark_theme(widget):
     widget.setStyleSheet(APP_DARK_THEME)
+
+
+def create_page_header(back_button_container, title_text):
+    header_container = QFrame()
+    header_container.setObjectName("pageHeader")
+    header_layout = QVBoxLayout(header_container)
+    header_layout.setContentsMargins(10, 10, 10, 10)
+    header_layout.setSpacing(8)
+
+    title = QLabel(title_text)
+    title.setAlignment(Qt.AlignCenter)
+    title.setStyleSheet("font-size: 24px; font-weight: 800; color: #ffffff; background: transparent;")
+
+    right_spacer = QWidget()
+    right_spacer.setFixedSize(
+        back_button_container.width(),
+        back_button_container.height(),
+    )
+    right_spacer.setStyleSheet("background: transparent;")
+
+    header_row = QHBoxLayout()
+    header_row.addWidget(back_button_container)
+    header_row.addStretch()
+    header_row.addWidget(title)
+    header_row.addStretch()
+    header_row.addWidget(right_spacer)
+    header_layout.addLayout(header_row)
+
+    # separator = QFrame()
+    # separator.setObjectName("pageHeaderSeparator")
+    # separator.setFixedHeight(2)
+    # header_layout.addWidget(separator)
+
+    return header_container
+
+
+def apply_status_icon(
+    label,
+    enabled,
+    checkmark_path,
+    red_x_path,
+    enabled_tooltip="Enabled",
+    disabled_tooltip="Not enabled",
+    unknown_tooltip="Unknown",
+):
+    if enabled is True:
+        label.setPixmap(QPixmap(str(checkmark_path)).scaled(20, 20))
+        label.setToolTip(enabled_tooltip)
+    elif enabled is False:
+        label.setPixmap(QPixmap(str(red_x_path)).scaled(20, 20))
+        label.setToolTip(disabled_tooltip)
+    else:
+        label.setPixmap(QPixmap(str(red_x_path)).scaled(20, 20))
+        label.setToolTip(unknown_tooltip)
