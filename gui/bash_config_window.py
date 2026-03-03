@@ -25,8 +25,6 @@ from programs.text_editor import (
     bashrc_extra_text,
 )
 from programs.config import (
-    CHECKMARK_ICON_PATH,
-    RED_X_ICON_PATH,
     BASH_EXTRA_PATH,
     BASHRC_PATH,
     FISH_CONFIG_PATH,
@@ -45,8 +43,6 @@ class BashConfigWindow(QMainWindow):
         self.version_labels = {}
         self.tweaks = []
         self.back_button_container = None
-        self.checkmark_path = CHECKMARK_ICON_PATH
-        self.red_x_path = RED_X_ICON_PATH
 
         self.setWindowTitle("Bash/Fish Config")
         self.setGeometry(100, 100, 900, 600)
@@ -161,8 +157,6 @@ class BashConfigWindow(QMainWindow):
         apply_status_icon(
             label,
             enabled,
-            self.checkmark_path,
-            self.red_x_path,
             enabled_tooltip="Enabled / Up to date",
             disabled_tooltip=disabled_tip,
             unknown_tooltip="Unknown",

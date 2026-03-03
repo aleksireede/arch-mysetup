@@ -29,8 +29,6 @@ from scripts.extra import (
     airplay_discover_pw,
 )
 from programs.config import (
-    CHECKMARK_ICON_PATH,
-    RED_X_ICON_PATH,
     BLUE_RIGHT_ARROW_ICON_PATH,
     ZEROCONF_DEST_PATH,
     AIRPLAY_DEST_PATH,
@@ -48,8 +46,6 @@ class AdvancedTweaks(QMainWindow):
         self.setup_window = setup_window
         self.pacman_config_window = None
         self.bash_config_window = None
-        self.checkmark_path = CHECKMARK_ICON_PATH
-        self.red_x_path = RED_X_ICON_PATH
 
         self.setWindowTitle("Advanced Tweaks")
         self.setGeometry(100, 100, 940, 700)
@@ -171,7 +167,7 @@ class AdvancedTweaks(QMainWindow):
         return AIRPLAY_DEST_PATH.exists()
 
     def set_status_icon(self, label: QLabel, enabled):
-        apply_status_icon(label, enabled, self.checkmark_path, self.red_x_path)
+        apply_status_icon(label, enabled)
 
     def refresh_statuses(self):
         for key, _, _, _, status_fn in self.tweaks:

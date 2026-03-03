@@ -2,6 +2,8 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QHBoxLayout, QVBoxLayout, QLabel, QWidget, QFrame
 
+from programs.config import CHECKMARK_ICON_PATH, RED_X_ICON_PATH, QUESTION_MARK_ICON_PATH
+
 APP_DARK_THEME = """
 QWidget {
     background-color: #0f141b;
@@ -128,29 +130,22 @@ def create_page_header(back_button_container, title_text):
     header_row.addWidget(right_spacer)
     header_layout.addLayout(header_row)
 
-    # separator = QFrame()
-    # separator.setObjectName("pageHeaderSeparator")
-    # separator.setFixedHeight(2)
-    # header_layout.addWidget(separator)
-
     return header_container
 
 
 def apply_status_icon(
     label,
     enabled,
-    checkmark_path,
-    red_x_path,
     enabled_tooltip="Enabled",
     disabled_tooltip="Not enabled",
     unknown_tooltip="Unknown",
 ):
     if enabled is True:
-        label.setPixmap(QPixmap(str(checkmark_path)).scaled(20, 20))
+        label.setPixmap(QPixmap(str(CHECKMARK_ICON_PATH)).scaled(20, 20))
         label.setToolTip(enabled_tooltip)
     elif enabled is False:
-        label.setPixmap(QPixmap(str(red_x_path)).scaled(20, 20))
+        label.setPixmap(QPixmap(str(RED_X_ICON_PATH)).scaled(20, 20))
         label.setToolTip(disabled_tooltip)
     else:
-        label.setPixmap(QPixmap(str(red_x_path)).scaled(20, 20))
+        label.setPixmap(QPixmap(str(QUESTION_MARK_ICON_PATH)).scaled(20, 20))
         label.setToolTip(unknown_tooltip)

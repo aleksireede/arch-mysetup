@@ -8,10 +8,11 @@ ICONS_DIR = REPO_ROOT.joinpath("icons")
 # Icon paths
 CHECKMARK_ICON_PATH = ICONS_DIR.joinpath("checkmark.svg")
 RED_X_ICON_PATH = ICONS_DIR.joinpath("red_x.svg")
+QUESTION_MARK_ICON_PATH = ICONS_DIR.joinpath("question_mark.svg")
 BLUE_RIGHT_ARROW_ICON_PATH = ICONS_DIR.joinpath("blue_right_arrow.svg")
 
 # Managed versions
-BASH_EXTRA_VERSION = "1.1"
+BASH_EXTRA_VERSION = "1.2"
 
 # System/user config paths
 PACMAN_CONF_PATH = Path("/etc/pacman.conf")

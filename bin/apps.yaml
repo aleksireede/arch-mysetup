@@ -273,9 +273,9 @@
   source: Unknown
   category: Utilities
   conflicts: []
-- name: intellij-idea-community-edition-bin
-  description: Default description for intellij-idea-community-edition-bin
-  source: Unknown
+- name: intellij-idea-open-eap
+  description: Default description for intellij-idea-open-eap
+  source: paru
   category: Utilities
   conflicts: []
 - name: irqbalance
@@ -658,6 +658,11 @@
   source: pacman
   category: Utilities
   conflicts: []
+- name: ripgrep
+  description: Default description for ripgrep
+  source: pacman
+  category: Utilities
+  conflicts: []
 - name: rpi-imager
   description: Default description for rpi-imager
   source: pacman
@@ -703,6 +708,11 @@
   source: Unknown
   category: Utilities
   conflicts: []
+- name: tartube
+  description: Default description for tartube
+  source: pacman
+  category: Utilities
+  conflicts: []
 - name: telegram-desktop
   description: Default description for telegram-desktop
   source: Unknown
@@ -711,6 +721,11 @@
 - name: tidal-hifi-bin
   description: Default description for tidal-hifi-bin
   source: Unknown
+  category: Utilities
+  conflicts: []
+- name: tidaler
+  description: Default description for tidaler
+  source: paru
   category: Utilities
   conflicts: []
 - name: ttf-ms-fonts

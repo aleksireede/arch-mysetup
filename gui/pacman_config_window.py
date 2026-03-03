@@ -19,7 +19,7 @@ except ImportError:
 
 from scripts.extra import reflector_service_timer
 from programs.text_editor import enable_multilib, pacman_enable_color, check_multilib, check_pacman_color
-from programs.config import CHECKMARK_ICON_PATH, RED_X_ICON_PATH, PACMAN_REFLECTOR_CONFIG_PATH
+from programs.config import PACMAN_REFLECTOR_CONFIG_PATH
 
 
 class PacmanConfigWindow(QMainWindow):
@@ -31,8 +31,6 @@ class PacmanConfigWindow(QMainWindow):
         self.status_labels = {}
         self.tweaks = []
         self.back_button_container = None
-        self.checkmark_path = CHECKMARK_ICON_PATH
-        self.red_x_path = RED_X_ICON_PATH
 
         self.setWindowTitle("Pacman Config")
         self.setGeometry(100, 100, 900, 600)
@@ -114,7 +112,7 @@ class PacmanConfigWindow(QMainWindow):
         return PACMAN_REFLECTOR_CONFIG_PATH.exists()
 
     def set_status_icon(self, label: QLabel, enabled):
-        apply_status_icon(label, enabled, self.checkmark_path, self.red_x_path)
+        apply_status_icon(label, enabled)
 
     def refresh_statuses(self):
         for key, _, _, _, status_fn in self.tweaks:

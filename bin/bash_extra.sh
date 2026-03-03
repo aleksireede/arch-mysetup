@@ -17,7 +17,7 @@ alias listaur="paru -Qemq | lolcat"
 alias listpkg="paru -Qenq | lolcat"
 alias update="paru -Suy --skipreview --quiet --needed --color always"
 alias install="paru -S --skipreview --quiet --needed --color always"
-alias remove="paru -Rns --quiet --color always"
+alias remove="paru -R --recursive --nosave --unneeded --color always"
 
 export QT_PLUGIN_PATH=/usr/lib/qt/plugins
 export QT_QPA_PLATFORM=wayland

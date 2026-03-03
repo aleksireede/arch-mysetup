@@ -68,7 +68,6 @@ class ArchAppInstaller(QMainWindow):
         self.refresh_button = None
         self.install_button = None
         self.select_all_button = None
-        # self.app_editor_btn = None
         self.back_button = None
         self.list_widget = None
         self.loading_label = None
@@ -115,18 +114,9 @@ class ArchAppInstaller(QMainWindow):
         )
         header_widget = create_page_header(self.back_button_container, "Install")
 
-        # Buttons
-        # self.app_editor_btn = QPushButton("App List Editor")
-        # self.app_editor_btn.clicked.connect(self.app_list_editor_dialog)
-
         self.install_button = QPushButton("Install Selected")
         self.install_button.clicked.connect(self.install_selected)
         self.install_button.setFixedWidth(200)
-
-        # app_editor_row = QHBoxLayout()
-        # app_editor_row.addStretch()
-        # app_editor_row.addWidget(self.app_editor_btn)
-        # app_editor_row.addStretch()
 
         self.third_layout, self.select_all_button, self.refresh_button = create_select_refresh_row(
             self.toggle_select_all_apps, self.load_apps_async
@@ -137,7 +127,6 @@ class ArchAppInstaller(QMainWindow):
         # Add loading label and list widget
         self.main_layout.addWidget(header_widget)
         self.main_layout.addSpacing(10)
-        # self.main_layout.addLayout(app_editor_row)
         self.main_layout.addLayout(self.third_layout)
         self.main_layout.addSpacing(20)
         self.main_layout.addWidget(self.loading_label)
@@ -347,12 +336,6 @@ class ArchAppInstaller(QMainWindow):
                 item.setCheckState(state)
                 self.list_widget.addItem(item)
 
-    # def app_list_editor_dialog(self):
-    #     dialog = AppListEditorDialog(self, self.apps)
-    #     if dialog.exec():
-    #         self.apps = dialog.get_apps()
-    #         self.load_apps_async()
-
     def go_back_to_setup(self):
         self.setup_window.show()
         self.hide()
@@ -405,7 +388,6 @@ class ArchAppInstaller(QMainWindow):
         self.install_button.setEnabled(True)
         self.refresh_button.setEnabled(True)
         self.select_all_button.setEnabled(True)
-        # self.app_editor_btn.setEnabled(True)
         self.load_apps_async()
 
     def on_install_operations_error(self, error_message):
@@ -414,7 +396,6 @@ class ArchAppInstaller(QMainWindow):
         self.install_button.setEnabled(True)
         self.refresh_button.setEnabled(True)
         self.select_all_button.setEnabled(True)
-        # self.app_editor_btn.setEnabled(True)
         QMessageBox.critical(self, "Install Error", f"Installation failed: {error_message}")
         self.load_apps_async()
 
