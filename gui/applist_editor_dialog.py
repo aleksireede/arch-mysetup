@@ -1,6 +1,8 @@
 import subprocess
+from pathlib import Path
 
 from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QListWidget, QPushButton, QMessageBox, QInputDialog, QHBoxLayout
 
 from programs.apps_file import add_app_to_yaml, remove_app_from_yaml
@@ -20,6 +22,7 @@ class AppListEditorDialog(QDialog):
         apply_dark_theme(self)
         self.selected_item = None
         self.apps = apps
+        self.search_icon_path = Path(__file__).resolve().parent.parent.joinpath("icons", "search.svg")
 
         # use vertical box layout
         layout = QHBoxLayout(self)
@@ -42,6 +45,11 @@ class AppListEditorDialog(QDialog):
         remove_btn = QPushButton("Remove Selected", self)
         remove_btn.clicked.connect(self.remove_selected)
 
+        # Search button
+        search_btn = QPushButton("Search", self)
+        search_btn.setIcon(QIcon(str(self.search_icon_path)))
+        search_btn.clicked.connect(self.search_app)
+
         # Cancel button
         cancel_btn = QPushButton("Cancel", self)
         cancel_btn.clicked.connect(self.reject)
@@ -52,6 +60,7 @@ class AppListEditorDialog(QDialog):
         # button layout
         button_layout.addStretch()
         button_layout.addWidget(add_btn)
+        button_layout.addWidget(search_btn)
         button_layout.addWidget(remove_btn)
         button_layout.addSpacing(15)
         button_layout.addWidget(ok_btn)
@@ -132,3 +141,25 @@ class AppListEditorDialog(QDialog):
 
     def get_apps(self):
         return self.apps
+
+    def search_app(self):
+        search_text, ok = QInputDialog.getText(
+            self, "Search Application", "Enter app name to search:"
+        )
+        if not ok:
+            return
+
+        query = search_text.strip()
+        if not query:
+            QMessageBox.information(self, "Search", "Please enter an application name.")
+            return
+
+        lower_query = query.lower()
+        for index in range(self.list_widget.count()):
+            item = self.list_widget.item(index)
+            if lower_query in item.text().lower():
+                self.list_widget.setCurrentRow(index)
+                self.list_widget.scrollToItem(item)
+                return
+
+        QMessageBox.information(self, "Not Found", f"No application found for '{query}'.")

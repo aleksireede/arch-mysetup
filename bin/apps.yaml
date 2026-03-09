@@ -168,6 +168,11 @@
   source: Unknown
   category: Utilities
   conflicts: []
+- name: git-nautilus-icons
+  description: Default description for git-nautilus-icons
+  source: paru
+  category: Utilities
+  conflicts: []
 - name: glfw
   description: Default description for glfw
   source: Unknown
@@ -478,14 +483,44 @@
   source: Unknown
   category: Utilities
   conflicts: []
+- name: nautilus-checksums
+  description: Default description for nautilus-checksums
+  source: paru
+  category: Utilities
+  conflicts: []
+- name: nautilus-code
+  description: Default description for nautilus-code
+  source: paru
+  category: Utilities
+  conflicts: []
 - name: nautilus-dropbox
   description: Default description for nautilus-dropbox
   source: Unknown
   category: Utilities
   conflicts: []
+- name: nautilus-empty-file
+  description: Default description for nautilus-empty-file
+  source: paru
+  category: Utilities
+  conflicts: []
 - name: nautilus-image-converter
   description: Default description for nautilus-image-converter
   source: Unknown
+  category: Utilities
+  conflicts: []
+- name: nautilus-metadata-editor
+  description: Default description for nautilus-metadata-editor
+  source: paru
+  category: Utilities
+  conflicts: []
+- name: nautilus-open-any-terminal
+  description: Default description for nautilus-open-any-terminal
+  source: pacman
+  category: Utilities
+  conflicts: []
+- name: nautilus-scripts
+  description: Default description for nautilus-scripts
+  source: paru
   category: Utilities
   conflicts: []
 - name: net-tools
@@ -525,11 +560,6 @@
   conflicts: []
 - name: openal
   description: Default description for openal
-  source: Unknown
-  category: Utilities
-  conflicts: []
-- name: openrgb
-  description: Default description for openrgb
   source: Unknown
   category: Utilities
   conflicts: []

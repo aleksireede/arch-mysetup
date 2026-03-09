@@ -2,8 +2,9 @@ import sys
 from pathlib import Path
 
 from PyQt5.QtCore import Qt, QThread, QObject, pyqtSignal
+from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QHBoxLayout, QWidget, QPushButton, QListWidget, QListWidgetItem, \
-    QMessageBox
+    QMessageBox, QInputDialog
 
 parent_dir = str(Path(__file__).resolve().parent.parent.joinpath("programs"))
 sys.path.append(parent_dir)
@@ -61,6 +62,7 @@ class AppUninstaller(QMainWindow):
         self.back_button_container = None
         self.install_button = None
         self.select_all_button = None
+        self.search_button = None
         self.back_button = None
         self.refresh_button = None
         # layouts
@@ -79,6 +81,7 @@ class AppUninstaller(QMainWindow):
         self.setMinimumSize(660, 700)
         # app list
         self.apps = []
+        self.search_icon_path = Path(__file__).resolve().parent.parent.joinpath("icons", "search.svg")
         self.init_ui()
 
     def init_ui(self):
@@ -111,6 +114,10 @@ class AppUninstaller(QMainWindow):
         self.third_layout, self.select_all_button, self.refresh_button = create_select_refresh_row(
             self.toggle_select_all_apps, self.refresh_app_list_async
         )
+        self.search_button = QPushButton("Search")
+        self.search_button.setIcon(QIcon(str(self.search_icon_path)))
+        self.search_button.clicked.connect(self.search_app)
+        self.third_layout.insertWidget(1, self.search_button)
 
         # bottom layout
         self.bottom_layout.addWidget(self.install_button)
@@ -232,6 +239,7 @@ class AppUninstaller(QMainWindow):
         self.install_button.setEnabled(False)
         self.refresh_button.setEnabled(False)
         self.select_all_button.setEnabled(False)
+        self.search_button.setEnabled(False)
 
         self.action_thread = QThread()
         self.action_worker = RemoveOperationWorker(selected_apps)
@@ -249,15 +257,41 @@ class AppUninstaller(QMainWindow):
         self.install_button.setEnabled(True)
         self.refresh_button.setEnabled(True)
         self.select_all_button.setEnabled(True)
+        self.search_button.setEnabled(True)
         self.refresh_app_list_async()
 
     def on_remove_operation_error(self, error_message):
         self.install_button.setEnabled(True)
         self.refresh_button.setEnabled(True)
         self.select_all_button.setEnabled(True)
+        self.search_button.setEnabled(True)
         QMessageBox.critical(self, "Remove Error", f"Removal failed: {error_message}")
         self.refresh_app_list_async()
 
     def cleanup_action_thread(self):
         self.action_thread = None
         self.action_worker = None
+
+    def search_app(self):
+        search_text, ok = QInputDialog.getText(
+            self, "Search Application", "Enter app name to search:"
+        )
+        if not ok:
+            return
+
+        query = search_text.strip()
+        if not query:
+            QMessageBox.information(self, "Search", "Please enter an application name.")
+            return
+
+        lower_query = query.lower()
+        for index in range(self.list_widget.count()):
+            item = self.list_widget.item(index)
+            if not (item.flags() & Qt.ItemFlag.ItemIsUserCheckable):
+                continue
+            if lower_query in item.text().lower():
+                self.list_widget.setCurrentRow(index)
+                self.list_widget.scrollToItem(item)
+                return
+
+        QMessageBox.information(self, "Not Found", f"No application found for '{query}'.")
