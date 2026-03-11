@@ -3,6 +3,11 @@
   source: Unknown
   category: Utilities
   conflicts: []
+- name: adwaita-icon-theme
+  description: Default description for adwaita-icon-theme
+  source: pacman
+  category: Utilities
+  conflicts: []
 - name: alsa-plugins
   description: Default description for alsa-plugins
   source: Unknown
@@ -23,6 +28,11 @@
   source: Unknown
   category: Utilities
   conflicts: []
+- name: android-udev
+  description: Default description for android-udev
+  source: pacman
+  category: Utilities
+  conflicts: []
 - name: aocc
   description: Default description for aocc
   source: Unknown
@@ -40,6 +50,11 @@
   conflicts: []
 - name: aria2
   description: Default description for aria2
+  source: pacman
+  category: Utilities
+  conflicts: []
+- name: ark
+  description: Default description for ark
   source: pacman
   category: Utilities
   conflicts: []
@@ -68,6 +83,11 @@
   source: Unknown
   category: Utilities
   conflicts: []
+- name: chromium
+  description: Default description for chromium
+  source: pacman
+  category: Utilities
+  conflicts: []
 - name: colordiff
   description: Default description for colordiff
   source: Unknown
@@ -83,6 +103,16 @@
   source: Unknown
   category: Utilities
   conflicts: []
+- name: dolphin
+  description: Default description for dolphin
+  source: pacman
+  category: Utilities
+  conflicts: []
+- name: dolphin-plugins
+  description: Default description for dolphin-plugins
+  source: pacman
+  category: Utilities
+  conflicts: []
 - name: dos2unix
   description: Default description for dos2unix
   source: Unknown
@@ -96,6 +126,11 @@
 - name: dream-background-remover
   description: Default description for dream-background-remover
   source: Unknown
+  category: Utilities
+  conflicts: []
+- name: dropbox
+  description: Default description for dropbox
+  source: pacman
   category: Utilities
   conflicts: []
 - name: efibootmgr
@@ -121,6 +156,11 @@
 - name: faudio
   description: Default description for faudio
   source: Unknown
+  category: Utilities
+  conflicts: []
+- name: fd
+  description: Default description for fd
+  source: pacman
   category: Utilities
   conflicts: []
 - name: ffmpeg
@@ -168,11 +208,6 @@
   source: Unknown
   category: Utilities
   conflicts: []
-- name: git-nautilus-icons
-  description: Default description for git-nautilus-icons
-  source: paru
-  category: Utilities
-  conflicts: []
 - name: glfw
   description: Default description for glfw
   source: Unknown
@@ -180,16 +215,6 @@
   conflicts: []
 - name: glow
   description: Default description for glow
-  source: Unknown
-  category: Utilities
-  conflicts: []
-- name: gnome-browser-connector
-  description: Default description for gnome-browser-connector
-  source: Unknown
-  category: Utilities
-  conflicts: []
-- name: gnome-tweaks
-  description: Default description for gnome-tweaks
   source: Unknown
   category: Utilities
   conflicts: []
@@ -233,39 +258,14 @@
   source: Unknown
   category: Utilities
   conflicts: []
-- name: gvfs
-  description: Default description for gvfs
-  source: Unknown
-  category: Utilities
-  conflicts: []
-- name: gvfs-afc
-  description: Default description for gvfs-afc
-  source: Unknown
-  category: Utilities
-  conflicts: []
-- name: gvfs-google
-  description: Default description for gvfs-google
-  source: Unknown
-  category: Utilities
-  conflicts: []
-- name: gvfs-gphoto2
-  description: Default description for gvfs-gphoto2
-  source: Unknown
-  category: Utilities
-  conflicts: []
-- name: gvfs-mtp
-  description: Default description for gvfs-mtp
-  source: Unknown
-  category: Utilities
-  conflicts: []
-- name: gvfs-smb
-  description: Default description for gvfs-smb
-  source: Unknown
-  category: Utilities
-  conflicts: []
 - name: i2c-tools
   description: Default description for i2c-tools
   source: Unknown
+  category: Utilities
+  conflicts: []
+- name: ifuse
+  description: Default description for ifuse
+  source: pacman
   category: Utilities
   conflicts: []
 - name: imagemagick
@@ -293,9 +293,39 @@
   source: Unknown
   category: Utilities
   conflicts: []
+- name: kcalc
+  description: Default description for kcalc
+  source: pacman
+  category: Utilities
+  conflicts: []
+- name: kde-gtk-config
+  description: Default description for kde-gtk-config
+  source: pacman
+  category: Utilities
+  conflicts: []
+- name: kdegraphics-thumbnailers
+  description: Default description for kdegraphics-thumbnailers
+  source: pacman
+  category: Utilities
+  conflicts: []
 - name: keepassxc
   description: Default description for keepassxc
   source: Unknown
+  category: Utilities
+  conflicts: []
+- name: kio-extras
+  description: Default description for kio-extras
+  source: pacman
+  category: Utilities
+  conflicts: []
+- name: konsole
+  description: Default description for konsole
+  source: pacman
+  category: Utilities
+  conflicts: []
+- name: kscreen
+  description: Default description for kscreen
+  source: pacman
   category: Utilities
   conflicts: []
 - name: less
@@ -378,6 +408,11 @@
   source: Unknown
   category: Utilities
   conflicts: []
+- name: libimobiledevice
+  description: Default description for libimobiledevice
+  source: pacman
+  category: Utilities
+  conflicts: []
 - name: libjpeg-turbo
   description: Default description for libjpeg-turbo
   source: Unknown
@@ -448,6 +483,11 @@
   source: Unknown
   category: Utilities
   conflicts: []
+- name: maven
+  description: Default description for maven
+  source: pacman
+  category: Utilities
+  conflicts: []
 - name: mcpelauncher-linux
   description: Default description for mcpelauncher-linux
   source: Unknown
@@ -483,46 +523,6 @@
   source: Unknown
   category: Utilities
   conflicts: []
-- name: nautilus-checksums
-  description: Default description for nautilus-checksums
-  source: paru
-  category: Utilities
-  conflicts: []
-- name: nautilus-code
-  description: Default description for nautilus-code
-  source: paru
-  category: Utilities
-  conflicts: []
-- name: nautilus-dropbox
-  description: Default description for nautilus-dropbox
-  source: Unknown
-  category: Utilities
-  conflicts: []
-- name: nautilus-empty-file
-  description: Default description for nautilus-empty-file
-  source: paru
-  category: Utilities
-  conflicts: []
-- name: nautilus-image-converter
-  description: Default description for nautilus-image-converter
-  source: Unknown
-  category: Utilities
-  conflicts: []
-- name: nautilus-metadata-editor
-  description: Default description for nautilus-metadata-editor
-  source: paru
-  category: Utilities
-  conflicts: []
-- name: nautilus-open-any-terminal
-  description: Default description for nautilus-open-any-terminal
-  source: pacman
-  category: Utilities
-  conflicts: []
-- name: nautilus-scripts
-  description: Default description for nautilus-scripts
-  source: paru
-  category: Utilities
-  conflicts: []
 - name: net-tools
   description: Default description for net-tools
   source: Unknown
@@ -530,6 +530,11 @@
   conflicts: []
 - name: nmap
   description: Default description for nmap
+  source: pacman
+  category: Utilities
+  conflicts: []
+- name: nodejs
+  description: Default description for nodejs
   source: pacman
   category: Utilities
   conflicts: []
@@ -546,6 +551,11 @@
 - name: noto-fonts-extra
   description: Default description for noto-fonts-extra
   source: Unknown
+  category: Utilities
+  conflicts: []
+- name: npm
+  description: Default description for npm
+  source: pacman
   category: Utilities
   conflicts: []
 - name: ntfs-3g
@@ -566,6 +576,11 @@
 - name: opera
   description: Default description for opera
   source: Unknown
+  category: Utilities
+  conflicts: []
+- name: partitionmanager
+  description: Default description for partitionmanager
+  source: pacman
   category: Utilities
   conflicts: []
 - name: pipewire
@@ -601,6 +616,31 @@
 - name: pipewire-zeroconf
   description: Default description for pipewire-zeroconf
   source: Unknown
+  category: Utilities
+  conflicts: []
+- name: plasma-desktop
+  description: Default description for plasma-desktop
+  source: pacman
+  category: Utilities
+  conflicts: []
+- name: plasma-nm
+  description: Default description for plasma-nm
+  source: pacman
+  category: Utilities
+  conflicts: []
+- name: plasma-pa
+  description: Default description for plasma-pa
+  source: pacman
+  category: Utilities
+  conflicts: []
+- name: plasma-workspace
+  description: Default description for plasma-workspace
+  source: pacman
+  category: Utilities
+  conflicts: []
+- name: plymouth-kcm
+  description: Default description for plymouth-kcm
+  source: pacman
   category: Utilities
   conflicts: []
 - name: png2svg
@@ -698,6 +738,11 @@
   source: pacman
   category: Utilities
   conflicts: []
+- name: samba
+  description: Default description for samba
+  source: pacman
+  category: Utilities
+  conflicts: []
 - name: sbctl
   description: Default description for sbctl
   source: pacman
@@ -708,6 +753,11 @@
   source: Unknown
   category: Utilities
   conflicts: []
+- name: sddm
+  description: Default description for sddm
+  source: pacman
+  category: Utilities
+  conflicts: []
 - name: sleepy-launcher
   description: Default description for sleepy-launcher
   source: paru
@@ -716,6 +766,11 @@
 - name: snapchat
   description: Default description for snapchat
   source: Unknown
+  category: Utilities
+  conflicts: []
+- name: spectacle
+  description: Default description for spectacle
+  source: pacman
   category: Utilities
   conflicts: []
 - name: spotiflac-bin
@@ -763,6 +818,16 @@
   source: Unknown
   category: Utilities
   conflicts: []
+- name: udftools
+  description: Default description for udftools
+  source: pacman
+  category: Utilities
+  conflicts: []
+- name: ufw-extras
+  description: Default description for ufw-extras
+  source: pacman
+  category: Utilities
+  conflicts: []
 - name: unrar
   description: Default description for unrar
   source: Unknown
@@ -771,6 +836,11 @@
 - name: uresourced
   description: Default description for uresourced
   source: Unknown
+  category: Utilities
+  conflicts: []
+- name: usbmuxd
+  description: Default description for usbmuxd
+  source: pacman
   category: Utilities
   conflicts: []
 - name: vesktop-bin
@@ -801,6 +871,11 @@
 - name: wireplumber
   description: Default description for wireplumber
   source: Unknown
+  category: Utilities
+  conflicts: []
+- name: xdg-desktop-portal-kde
+  description: Default description for xdg-desktop-portal-kde
+  source: pacman
   category: Utilities
   conflicts: []
 - name: xpadneo-dkms
