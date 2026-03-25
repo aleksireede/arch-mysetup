@@ -1,5 +1,5 @@
 --save /etc/pacman.d/mirrorlist
 --protocol https
---country Finland,Sweden,Germany,Estonia
+--country Finland,Sweden,Germany,Estonia,Norway
 --latest 10
 --sort rate

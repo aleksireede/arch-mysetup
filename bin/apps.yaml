@@ -173,6 +173,11 @@
   source: Unknown
   category: Utilities
   conflicts: []
+- name: flatpak-kcm
+  description: Default description for flatpak-kcm
+  source: pacman
+  category: Utilities
+  conflicts: []
 - name: fontconfig
   description: Default description for fontconfig
   source: Unknown
@@ -278,11 +283,6 @@
   source: Unknown
   category: Utilities
   conflicts: []
-- name: intellij-idea-open-eap
-  description: Default description for intellij-idea-open-eap
-  source: paru
-  category: Utilities
-  conflicts: []
 - name: irqbalance
   description: Default description for irqbalance
   source: Unknown
@@ -291,6 +291,11 @@
 - name: jdk-openjdk
   description: Default description for jdk-openjdk
   source: Unknown
+  category: Utilities
+  conflicts: []
+- name: jetbrains-toolbox
+  description: Default description for jetbrains-toolbox
+  source: paru
   category: Utilities
   conflicts: []
 - name: kcalc
@@ -488,16 +493,6 @@
   source: pacman
   category: Utilities
   conflicts: []
-- name: mcpelauncher-linux
-  description: Default description for mcpelauncher-linux
-  source: Unknown
-  category: Utilities
-  conflicts: []
-- name: mcpelauncher-ui
-  description: Default description for mcpelauncher-ui
-  source: Unknown
-  category: Utilities
-  conflicts: []
 - name: memavaild
   description: Default description for memavaild
   source: Unknown
@@ -566,6 +561,11 @@
 - name: ocs-url
   description: Default description for ocs-url
   source: Unknown
+  category: Utilities
+  conflicts: []
+- name: ollama
+  description: Default description for ollama
+  source: pacman
   category: Utilities
   conflicts: []
 - name: openal
@@ -648,6 +648,11 @@
   source: Unknown
   category: Utilities
   conflicts: []
+- name: power-profiles-daemon
+  description: Default description for power-profiles-daemon
+  source: pacman
+  category: Utilities
+  conflicts: []
 - name: preload
   description: Default description for preload
   source: Unknown
@@ -660,11 +665,6 @@
   conflicts: []
 - name: pwvucontrol
   description: Default description for pwvucontrol
-  source: Unknown
-  category: Utilities
-  conflicts: []
-- name: pycharm
-  description: Default description for pycharm
   source: Unknown
   category: Utilities
   conflicts: []
@@ -758,6 +758,11 @@
   source: pacman
   category: Utilities
   conflicts: []
+- name: sddm-kcm
+  description: Default description for sddm-kcm
+  source: pacman
+  category: Utilities
+  conflicts: []
 - name: sleepy-launcher
   description: Default description for sleepy-launcher
   source: paru
@@ -776,6 +781,11 @@
 - name: spotiflac-bin
   description: Default description for spotiflac-bin
   source: paru
+  category: Utilities
+  conflicts: []
+- name: spotify-launcher
+  description: Default description for spotify-launcher
+  source: pacman
   category: Utilities
   conflicts: []
 - name: sshpilot
@@ -801,16 +811,6 @@
 - name: telegram-desktop
   description: Default description for telegram-desktop
   source: Unknown
-  category: Utilities
-  conflicts: []
-- name: tidal-hifi-bin
-  description: Default description for tidal-hifi-bin
-  source: Unknown
-  category: Utilities
-  conflicts: []
-- name: tidaler
-  description: Default description for tidaler
-  source: paru
   category: Utilities
   conflicts: []
 - name: ttf-ms-fonts

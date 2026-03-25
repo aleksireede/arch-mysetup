@@ -8,7 +8,7 @@ from pathlib import Path
 from PyQt5.QtCore import pyqtSignal, QObject, QThread
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QWidget, QPushButton, QLabel, QHBoxLayout, QMessageBox, QFrame, \
-    QInputDialog, QLineEdit, QSizePolicy, QDialog, QFormLayout, QDialogButtonBox
+    QInputDialog, QLineEdit, QSizePolicy, QDialog, QFormLayout, QDialogButtonBox, QApplication
 
 programs_dir = str(Path(__file__).resolve().parent.parent.joinpath("programs"))
 sys.path.append(programs_dir)
@@ -16,13 +16,13 @@ sys.path.append(programs_dir)
 scripts_dir = str(Path(__file__).resolve().parent.parent.joinpath("scripts"))
 sys.path.append(scripts_dir)
 
-from detect_gpu import detect_gpu_vendor
+from scripts.detect_gpu import detect_gpu_vendor
 from programs.config import CHECKMARK_ICON_PATH, RED_X_ICON_PATH
-from programs.installer_logic import install_paru, add_samba_drive, command_exists
+from programs.installer_logic import install_paru, add_samba_drive, command_exists, open_terminal
 try:
-    from .theme import apply_dark_theme
+    from .theme import configure_main_window, configure_dialog
 except ImportError:
-    from theme import apply_dark_theme
+    from theme import configure_main_window, configure_dialog
 
 
 def gpu_driver_installed():
@@ -100,10 +100,13 @@ class SetupWindow(QMainWindow):
     open_uninstaller = pyqtSignal()
     open_advanced_tweaks = pyqtSignal()
     open_apps_page = pyqtSignal()
+    open_services_page = pyqtSignal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
         # Buttons
+        self.paru_card = None
+        self.gpu_card = None
         self.advanced_tweak_btn = None
         self.outer_bottom_layout = None
         self.bottom_layout = None
@@ -124,6 +127,7 @@ class SetupWindow(QMainWindow):
         self.install_button = None
         self.remove_button = None
         self.apps_page_button = None
+        self.services_page_button = None
         self.add_network_drive_button = None
         self.install_paru_button = None
         # end buttons
@@ -136,15 +140,13 @@ class SetupWindow(QMainWindow):
         self.main_window = None
         # Set the window title text
         self.setWindowTitle("Arch advanced setup")
-        # set window size
-        self.setGeometry(100, 100, 680, 560)
+        configure_main_window(self)
         self.init_ui()
 
     def init_ui(self):
         self.main_window = QWidget()
         self.setCentralWidget(self.main_window)
         self.layout = QVBoxLayout(self.main_window)  # Set layout directly on central widget
-        apply_dark_theme(self)
 
         # GPU Driver Section
         self.gpu_card = QFrame()
@@ -218,6 +220,9 @@ class SetupWindow(QMainWindow):
         self.apps_page_button = QPushButton("Apps")
         self.apps_page_button.clicked.connect(self.open_apps_page.emit)
 
+        self.services_page_button = QPushButton("Services")
+        self.services_page_button.clicked.connect(self.open_services_page.emit)
+
         self.advanced_tweak_btn = QPushButton("Advanced Tweaks")
         self.advanced_tweak_btn.clicked.connect(self.open_advanced_tweaks.emit)
 
@@ -225,29 +230,26 @@ class SetupWindow(QMainWindow):
         self.install_paru_button.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         self.gpudrv_button.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         self.update_button.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-        service_btn_width = 210
+        service_btn_width = 180
+        main_button_width = 240
         self.install_paru_button.setFixedWidth(service_btn_width)
         self.gpudrv_button.setFixedWidth(service_btn_width)
         self.update_button.setFixedWidth(service_btn_width)
         self.add_network_drive_button.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         self.apps_page_button.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-        bottom_buttons = [
-            self.apps_page_button,
-            self.add_network_drive_button,
-            self.advanced_tweak_btn,
-        ]
-        uniform_button_width = max(button.sizeHint().width() for button in bottom_buttons)
-        for button in bottom_buttons:
-            button.setFixedWidth(uniform_button_width)
+        self.services_page_button.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        self.add_network_drive_button.setFixedWidth(main_button_width)
+        self.apps_page_button.setFixedWidth(main_button_width)
+        self.services_page_button.setFixedWidth(main_button_width)
+        self.advanced_tweak_btn.setFixedWidth(main_button_width)
 
         # Bottom Button layout
         self.bottom_layout = QVBoxLayout()
         self.bottom_layout.setSpacing(10)
-        # self.bottom_layout.addStretch()
         self.bottom_layout.addWidget(self.apps_page_button)
+        self.bottom_layout.addWidget(self.services_page_button)
         self.bottom_layout.addWidget(self.add_network_drive_button)
         self.bottom_layout.addWidget(self.advanced_tweak_btn)
-        # self.bottom_layout.addStretch()
 
         # Bottom outer layout
         self.outer_bottom_layout = QHBoxLayout()
@@ -265,8 +267,6 @@ class SetupWindow(QMainWindow):
         self.layout.addSpacing(16)
         self.layout.addStretch()
 
-        # Allow window to resize
-        self.setMinimumSize(620, 520)
         self.start_update_check()
 
     def update_gpu_status(self):
@@ -286,8 +286,6 @@ class SetupWindow(QMainWindow):
         vendor = detect_gpu_vendor()
         if vendor is None:
             QMessageBox.warning(self, "GPU Not Detected", "Could not detect GPU vendor.")
-            return
-        if not self.ensure_sudo_authenticated():
             return
         packages = []
         if vendor == "Intel":
@@ -320,12 +318,10 @@ class SetupWindow(QMainWindow):
             self.set_service_button_state(self.install_paru_button, installed=False)
 
     def handle_install_paru(self):
-        if not self.ensure_sudo_authenticated():
-            return
         if command_exists("paru"):
             QMessageBox.information(self, "Installed", "Paru is already installed!")
         else:
-            if install_paru(self.sudo_password):
+            if install_paru():
                 QMessageBox.information(self, "Success", "Paru installed successfully!")
                 self.update_paru_status()
             else:
@@ -335,7 +331,7 @@ class SetupWindow(QMainWindow):
         """Prompt for Samba share details in a single dialog and add to fstab."""
         dialog = QDialog(self)
         dialog.setWindowTitle("Add Network Drive")
-        dialog.resize(480, 250)
+        configure_dialog(dialog, width=680, height=360, min_width=600, min_height=320)
         form_layout = QFormLayout(dialog)
 
         share_input = QLineEdit(dialog)
@@ -356,7 +352,6 @@ class SetupWindow(QMainWindow):
         buttons.rejected.connect(dialog.reject)
         form_layout.addWidget(buttons)
 
-        apply_dark_theme(dialog)
         if dialog.exec() != QDialog.Accepted:
             return
 
@@ -370,9 +365,7 @@ class SetupWindow(QMainWindow):
             return
 
         try:
-            if not self.ensure_sudo_authenticated():
-                return
-            if add_samba_drive(share_path, mount_point, username, password, sudo_password=self.sudo_password):
+            if add_samba_drive(share_path, mount_point, username, password):
                 QMessageBox.information(self, "Success", "Network drive added successfully!")
             else:
                 QMessageBox.critical(self, "Error", "Failed to add network drive.")
@@ -443,11 +436,10 @@ class SetupWindow(QMainWindow):
                 return
 
         try:
-            subprocess.Popen(command)
-            QMessageBox.information(self, "Updater Started", "Update process started in background.")
-            self.update_status.setText("Updater started. Recheck status after update finishes.")
-            self.set_update_indicator("checking")
-            self.update_button.setText("Retry Check")
+            open_terminal(command)
+            app = QApplication.instance()
+            if app is not None:
+                app.quit()
         except Exception as e:
             QMessageBox.critical(self, "Update Error", f"Failed to start updater: {e}")
 
@@ -483,55 +475,18 @@ class SetupWindow(QMainWindow):
         super().closeEvent(event)
 
     def ensure_sudo_authenticated(self):
-        if self.sudo_password is None:
-            password, ok = QInputDialog.getText(
-                self,
-                "Administrator Password",
-                "Enter your sudo password (used for this session only):",
-                QLineEdit.Password,
-            )
-            if not ok or not password:
-                return False
-            self.sudo_password = password
-
-        try:
-            self.run_sudo_command(["-v"], validate_only=True)
-            return True
-        except RuntimeError:
-            # Retry once if timestamp invalid / wrong cached password
-            password, ok = QInputDialog.getText(
-                self,
-                "Administrator Password",
-                "Password was rejected. Re-enter sudo password:",
-                QLineEdit.Password,
-            )
-            if not ok or not password:
-                self.sudo_password = None
-                return False
-            self.sudo_password = password
-            try:
-                self.run_sudo_command(["-v"], validate_only=True)
-                return True
-            except RuntimeError as e:
-                self.sudo_password = None
-                QMessageBox.critical(self, "Authentication Failed", str(e))
-                return False
+        return True
 
     def run_sudo_command(self, command, validate_only=False):
-        if self.sudo_password is None:
-            raise RuntimeError("Missing sudo password")
-
-        base = ["sudo", "-S", "-p", ""]
-        full_command = base + command
+        full_command = ["pkexec", *command]
         result = subprocess.run(
             full_command,
-            input=self.sudo_password + "\n",
             text=True,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         )
         if result.returncode != 0:
-            error_text = result.stderr.strip() or "sudo command failed"
+            error_text = result.stderr.strip() or "privileged command failed"
             raise RuntimeError(error_text)
         if validate_only:
             return None

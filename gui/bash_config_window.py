@@ -14,10 +14,10 @@ from PyQt5.QtWidgets import (
 
 try:
     from .ui_helpers import create_back_button
-    from .theme import apply_dark_theme, create_page_header, apply_status_icon
+    from .theme import configure_main_window, create_page_header, apply_status_icon
 except ImportError:
     from ui_helpers import create_back_button
-    from theme import apply_dark_theme, create_page_header, apply_status_icon
+    from theme import configure_main_window, create_page_header, apply_status_icon
 
 from programs.text_editor import (
     update_bash_extra,
@@ -45,14 +45,12 @@ class BashConfigWindow(QMainWindow):
         self.back_button_container = None
 
         self.setWindowTitle("Bash/Fish Config")
-        self.setGeometry(100, 100, 900, 600)
-        self.setMinimumSize(860, 560)
+        configure_main_window(self)
         self.init_ui()
 
     def init_ui(self):
         central = QWidget()
         self.setCentralWidget(central)
-        apply_dark_theme(self)
         layout = QVBoxLayout(central)
 
         self.back_button_container, _, _, _ = create_back_button(self.go_back)

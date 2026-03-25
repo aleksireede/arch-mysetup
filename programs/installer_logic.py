@@ -48,20 +48,24 @@ def list_all_installed_apps():
     app_list = []
     app_list.extend(list_apps("pacman"))
     app_list.extend(list_apps("paru"))
+    app_list.sort()
     return app_list
 
 
 def list_apps(method: str):
-    cmd = []
     if method == "pacman":
         cmd = ["pacman", "-Qenq"]
     elif method == "paru":
+        if not command_exists("paru"):
+            return []
         cmd = ["paru", "-Qemq"]
+    else:
+        return []
     try:
         result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, check=True)
         applist = result.stdout.splitlines()
         return applist
-    except subprocess.CalledProcessError:
+    except (subprocess.CalledProcessError, FileNotFoundError):
         return []
 
 
@@ -84,29 +88,19 @@ def is_app_installed(app_name):
     return False
 
 
-def install_paru(sudo_password=None):
+def install_paru():
     """Install paru if not already installed."""
     script_path = Path(__file__).parent.parent.resolve().joinpath("scripts", "install_paru.sh")
     if command_exists("paru"):
         return True
-    if sudo_password:
+    if command_exists("pkexec"):
         temp_dir = Path(tempfile.mkdtemp(prefix="paru_", dir="/tmp"))
-        askpass_file = Path(tempfile.mkstemp(prefix="arch_mysetup_askpass_", dir="/tmp")[1])
         try:
             subprocess.run(
-                ["sudo", "-S", "-p", "", "-v"],
-                input=sudo_password + "\n",
-                text=True,
+                ["pkexec", "pacman", "-S", "--needed", "--noconfirm", "base-devel", "git", "rust"],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
-                check=True
-            )
-            subprocess.run(
-                ["sudo", "-S", "-p", "", "pacman", "-S", "--needed", "--noconfirm", "base-devel", "git", "rust"],
-                input=sudo_password + "\n",
                 text=True,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
                 check=True
             )
             subprocess.run(
@@ -114,17 +108,8 @@ def install_paru(sudo_password=None):
                 check=True
             )
 
-            askpass_file.write_text(
-                "#!/usr/bin/env python3\n"
-                "import os\n"
-                "print(os.environ.get('ARCH_MYSETUP_SUDO_PASSWORD', ''))\n"
-            )
-            os.chmod(askpass_file, 0o700)
-
             env = os.environ.copy()
-            env["SUDO_ASKPASS"] = str(askpass_file)
-            env["ARCH_MYSETUP_SUDO_PASSWORD"] = sudo_password
-            env["PACMAN_AUTH"] = "sudo -A -p ''"
+            env["PACMAN_AUTH"] = "pkexec"
 
             subprocess.run(
                 ["bash", "-lc", "makepkg -si --noconfirm --noprogressbar"],
@@ -137,8 +122,6 @@ def install_paru(sudo_password=None):
             print(f"Failed to install Paru: {e}")
             return False
         finally:
-            if askpass_file.exists():
-                askpass_file.unlink()
             if temp_dir.exists():
                 shutil.rmtree(temp_dir, ignore_errors=True)
     try:
@@ -202,7 +185,7 @@ def app_install(apps, command: str):
         install_command= ["paru", "-S", "--skipreview", "--needed", "--quiet", "--color", "always"]
         return apps_helper(apps, install_command)
     elif command == "pacman":
-        install_command = ["pkexec", "pacman", "-S", "--needed", "--quiet", "--color", "always"]
+        install_command = ["sudo", "pacman", "-S", "--needed", "--quiet", "--color", "always"]
         return apps_helper(apps, install_command)
     return None
 
@@ -211,7 +194,7 @@ def remove_apps(apps, command: str):
     if command == "paru":
         remove_command.append("paru")
     elif command == "pacman":
-        remove_command.append("pkexec")
+        remove_command.append("sudo")
         remove_command.append("pacman")
     remove_command.extend(["-Rns", "--color", "always"])
     return apps_helper(apps, remove_command)
@@ -228,7 +211,7 @@ def apps_helper(apps, command):
         return False
 
 
-def add_samba_drive(share_path, mount_point, username, password, sudo_password=None):
+def add_samba_drive(share_path, mount_point, username, password):
     """Add a Samba network drive to fstab and create .smbcredentials."""
     cred_file = generate_unique_cred_path()
 
@@ -241,20 +224,16 @@ def add_samba_drive(share_path, mount_point, username, password, sudo_password=N
         print(f"Failed to write credentials: {e}")
         return False
 
-    # Run the setup script with pkexec
+    # Run the setup script with sudo
     try:
         script_path = Path(__file__).parent.parent / "scripts" / "setup_samba.sh"
-        if sudo_password:
-            subprocess.run(
-                ["sudo", "-S", str(script_path), mount_point, share_path, str(cred_file)],
-                input=sudo_password + "\n",
-                text=True,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                check=True
-            )
-        else:
-            subprocess.run(["pkexec", script_path, mount_point, share_path, str(cred_file)], check=True)
+        subprocess.run(
+            ["pkexec", str(script_path), mount_point, share_path, str(cred_file)],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            check=True,
+        )
     except subprocess.CalledProcessError as e:
         print(f"Failed to setup Samba drive: {e}")
         return False

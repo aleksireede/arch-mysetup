@@ -1,4 +1,5 @@
 import subprocess
+from datetime import datetime, timedelta
 from pathlib import Path
 
 from programs.config import (
@@ -12,6 +13,7 @@ from programs.config import (
 
 # Arch / Pacman config
 pacman_conf = PACMAN_CONF_PATH
+pacman_sync_dir = Path("/var/lib/pacman/sync")
 multilib_disabled = "#[multilib]\n#Include = /etc/pacman.d/mirrorlist"
 multilib_enabled = "[multilib]\nInclude = /etc/pacman.d/mirrorlist"
 
@@ -205,3 +207,32 @@ def pacman_disable_parallel_downloads():
     # Disable parallel downloads
     if pacman_conf.exists():
         print(sudo_replace_text(pacman_conf, "ParallelDownloads=5", "#ParallelDownloads=5"))
+
+
+def pacman_check_database_refreshed(max_age_hours=24):
+    """
+    Checks whether pacman's sync databases were refreshed recently.
+    Returns True when at least one sync database exists and the newest one
+    was updated within the allowed age window.
+    """
+    if not pacman_sync_dir.exists():
+        return False
+
+    db_files = list(pacman_sync_dir.glob("*.db"))
+    if not db_files:
+        return False
+
+    newest_mtime = max(db_file.stat().st_mtime for db_file in db_files)
+    newest_refresh = datetime.fromtimestamp(newest_mtime)
+    return newest_refresh >= datetime.now() - timedelta(hours=max_age_hours)
+
+
+def pacman_refresh_database():
+    """Refresh pacman's package databases."""
+    subprocess.run(
+        ["pkexec", "pacman", "-Sy"],
+        check=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+    )

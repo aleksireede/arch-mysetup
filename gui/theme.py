@@ -9,6 +9,25 @@ QWidget {
     background-color: #0f141b;
     color: #d6dee8;
 }
+QDialog, QMessageBox, QInputDialog {
+    font-size: 16px;
+}
+QDialog QLabel, QMessageBox QLabel, QInputDialog QLabel {
+    font-size: 16px;
+}
+QDialog QPushButton, QMessageBox QPushButton, QInputDialog QPushButton {
+    font-size: 15px;
+    min-height: 38px;
+    padding: 8px 12px;
+}
+QDialog QLineEdit, QInputDialog QLineEdit {
+    font-size: 16px;
+    min-height: 38px;
+    padding: 6px 10px;
+}
+QDialog QListWidget {
+    font-size: 15px;
+}
 QFrame#serviceCard {
     background-color: #1b2430;
     border: 1px solid #2e3f53;
@@ -99,9 +118,31 @@ QFrame#pageHeaderSeparator {
 }
 """
 
+DEFAULT_WINDOW_WIDTH = 1440
+DEFAULT_WINDOW_HEIGHT = 810
+DEFAULT_MIN_WINDOW_WIDTH = 1280
+DEFAULT_MIN_WINDOW_HEIGHT = 720
+DEFAULT_DIALOG_WIDTH = 560
+DEFAULT_DIALOG_HEIGHT = 640
+DEFAULT_MIN_DIALOG_WIDTH = 500
+DEFAULT_MIN_DIALOG_HEIGHT = 560
+
 
 def apply_dark_theme(widget):
     widget.setStyleSheet(APP_DARK_THEME)
+
+
+def configure_main_window(window):
+    window.resize(DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT)
+    window.setMinimumSize(DEFAULT_MIN_WINDOW_WIDTH, DEFAULT_MIN_WINDOW_HEIGHT)
+    apply_dark_theme(window)
+
+
+def configure_dialog(dialog, width=DEFAULT_DIALOG_WIDTH, height=DEFAULT_DIALOG_HEIGHT,
+                     min_width=DEFAULT_MIN_DIALOG_WIDTH, min_height=DEFAULT_MIN_DIALOG_HEIGHT):
+    dialog.resize(width, height)
+    dialog.setMinimumSize(min_width, min_height)
+    apply_dark_theme(dialog)
 
 
 def create_page_header(back_button_container, title_text):

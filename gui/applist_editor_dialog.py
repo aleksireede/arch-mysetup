@@ -8,9 +8,9 @@ from PyQt5.QtWidgets import QDialog, QVBoxLayout, QListWidget, QPushButton, QMes
 from programs.apps_file import add_app_to_yaml, remove_app_from_yaml
 from programs.installer_logic import command_exists
 try:
-    from .theme import apply_dark_theme
+    from .theme import configure_dialog
 except ImportError:
-    from theme import apply_dark_theme
+    from theme import configure_dialog
 
 
 class AppListEditorDialog(QDialog):
@@ -18,8 +18,7 @@ class AppListEditorDialog(QDialog):
         super().__init__(parent)
         self.setWindowTitle("App List Editor")
         self.setWindowModality(Qt.WindowModality.ApplicationModal)
-        self.setGeometry(100, 100, 400, 500)
-        apply_dark_theme(self)
+        configure_dialog(self, width=620, height=720, min_width=560, min_height=640)
         self.selected_item = None
         self.apps = apps
         self.search_icon_path = Path(__file__).resolve().parent.parent.joinpath("icons", "search.svg")
@@ -88,7 +87,6 @@ class AppListEditorDialog(QDialog):
             current_row = self.list_widget.currentRow()
             if current_row >= 0:  # Check if an item is selected
                 self.list_widget.takeItem(current_row)
-            # :todo fix yaml remove
             remove_app_from_yaml(item.text())
 
             self.list_widget.sortItems()

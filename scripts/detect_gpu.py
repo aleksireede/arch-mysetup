@@ -33,12 +33,12 @@ def detect_gpu_vendor():
 def install_drivers(vendor_name):
     if vendor_name == "Intel":
         open_terminal(
-            ["pkexec", "pacman", "-S", "--needed", "mesa", "lib32-mesa", "vulkan-intel", "lib32-vulkan-intel","xf86-video-intel"])
+            ["sudo", "pacman", "-S", "--needed", "mesa", "lib32-mesa", "vulkan-intel", "lib32-vulkan-intel","xf86-video-intel"])
     elif vendor_name == "NVIDIA":
-        open_terminal(["pkexec", "pacman", "-S", "--needed", "nvidia", "nvidia-utils", "lib32-nvidia-utils"])
+        open_terminal(["sudo", "pacman", "-S", "--needed", "nvidia", "nvidia-utils", "lib32-nvidia-utils"])
     elif vendor_name == "AMD":
         open_terminal(
-            ["pkexec", "pacman", "-S", "--needed", "mesa", "lib32-mesa", "vulkan-radeon", "lib32-vulkan-radeon",
+            ["sudo", "pacman", "-S", "--needed", "mesa", "lib32-mesa", "vulkan-radeon", "lib32-vulkan-radeon",
              "xf86-video-amdgpu"])
 
 

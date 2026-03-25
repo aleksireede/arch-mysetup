@@ -13,10 +13,10 @@ from programs.installer_logic import (list_all_installed_apps, remove_apps)
 
 try:
     from .ui_helpers import create_back_button, create_select_refresh_row
-    from .theme import apply_dark_theme, create_page_header
+    from .theme import configure_main_window, create_page_header
 except ImportError:
     from ui_helpers import create_back_button, create_select_refresh_row
-    from theme import apply_dark_theme, create_page_header
+    from theme import configure_main_window, create_page_header
 
 
 class AppListWorker(QObject):
@@ -77,8 +77,7 @@ class AppUninstaller(QMainWindow):
         self.previous_window = setup_window  # Store the reference
         # Window title text
         self.setWindowTitle("Arch App Uninstaller")
-        self.setGeometry(100, 100, 700, 760)
-        self.setMinimumSize(660, 700)
+        configure_main_window(self)
         # app list
         self.apps = []
         self.search_icon_path = Path(__file__).resolve().parent.parent.joinpath("icons", "search.svg")
@@ -87,7 +86,6 @@ class AppUninstaller(QMainWindow):
     def init_ui(self):
         self.main_window_frame = QWidget()
         self.setCentralWidget(self.main_window_frame)
-        apply_dark_theme(self)
         self.main_layout = QVBoxLayout()
         self.secondary_layout = QHBoxLayout()
         self.app_layout = QHBoxLayout()

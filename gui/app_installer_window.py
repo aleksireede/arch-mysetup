@@ -10,13 +10,11 @@ from programs.installer_logic import (
 )
 
 try:
-    # from .applist_editor_dialog import AppListEditorDialog
     from .ui_helpers import create_back_button, create_select_refresh_row
-    from .theme import apply_dark_theme, create_page_header
+    from .theme import configure_main_window, create_page_header
 except ImportError:
-    # from applist_editor_dialog import AppListEditorDialog
     from ui_helpers import create_back_button, create_select_refresh_row
-    from theme import apply_dark_theme, create_page_header
+    from theme import configure_main_window, create_page_header
 
 
 class AppManagerWorker(QObject):
@@ -81,8 +79,7 @@ class ArchAppInstaller(QMainWindow):
         self.loading_dot_count = 0
         self.setup_window = setup_window
         self.setWindowTitle("Arch App Installer")
-        self.setGeometry(100, 100, 700, 760)
-        self.setMinimumSize(660, 700)
+        configure_main_window(self)
         self.apps = []
         self.selected_apps = []
         self.init_ui()
@@ -91,7 +88,6 @@ class ArchAppInstaller(QMainWindow):
     def init_ui(self):
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
-        apply_dark_theme(self)
         self.main_layout = QVBoxLayout()
         self.secondary_layout = QHBoxLayout()
         self.third_layout = QHBoxLayout()
@@ -366,7 +362,6 @@ class ArchAppInstaller(QMainWindow):
         self.install_button.setEnabled(False)
         self.refresh_button.setEnabled(False)
         self.select_all_button.setEnabled(False)
-        # self.app_editor_btn.setEnabled(False)
         self.loading_label.show()
         self.start_loading_animation("Waiting installation to finish")
 

@@ -13,7 +13,7 @@ USER_NAME="${SUDO_USER:-$USER}"
 USER_HOME="$(getent passwd "$USER_NAME" | cut -d: -f6)"
 LATEST_RELEASE_API="https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/releases/latest"
 
-pkexec pacman -S --needed --noconfirm \
+sudo pacman -S --needed --noconfirm \
   python python-pip python-pyqt5 python-pyqt6 \
   qt5-base qt5-xcb-private-headers libxcb gnome-console git curl
 
@@ -25,11 +25,11 @@ elif [[ -e "$INSTALL_DIR" ]]; then
   exit 1
 else
   echo "Cloning repository into $INSTALL_DIR"
-  pkexec git clone "$REPO_URL" "$INSTALL_DIR"
+  sudo git clone "$REPO_URL" "$INSTALL_DIR"
 fi
 
 # Ensure regular user can run/update project files later
-pkexec chown -R "$USER_NAME:$USER_NAME" "$INSTALL_DIR"
+sudo chown -R "$USER_NAME:$USER_NAME" "$INSTALL_DIR"
 
 echo "Checking latest GitHub release tag..."
 LATEST_TAG=""
@@ -53,25 +53,25 @@ if [[ -e "$LAUNCHER_BIN" ]]; then
 else
   echo "Creating launcher: $LAUNCHER_BIN"
 fi
-pkexec bash -c "cat > '$LAUNCHER_BIN' << 'EOF'
+sudo bash -c "cat > '$LAUNCHER_BIN' << 'EOF'
 #!/usr/bin/env bash
 set -euo pipefail
 export QT_QPA_PLATFORM=wayland
 exec python /opt/arch-mysetup/main/main.py
 EOF"
-pkexec chmod 755 "$LAUNCHER_BIN"
+sudo chmod 755 "$LAUNCHER_BIN"
 
 if [[ -e "$UPDATER_BIN" ]]; then
   echo "Updating updater command: $UPDATER_BIN"
 else
   echo "Creating updater command: $UPDATER_BIN"
 fi
-pkexec bash -c "cat > '$UPDATER_BIN' << 'EOF'
+sudo bash -c "cat > '$UPDATER_BIN' << 'EOF'
 #!/usr/bin/env bash
 set -euo pipefail
 exec bash /opt/arch-mysetup/main/update.sh
 EOF"
-pkexec chmod 755 "$UPDATER_BIN"
+sudo chmod 755 "$UPDATER_BIN"
 
 # Desktop launcher
 if [[ -e "$DESKTOP_FILE" ]]; then
@@ -79,7 +79,7 @@ if [[ -e "$DESKTOP_FILE" ]]; then
 else
   echo "Creating desktop entry: $DESKTOP_FILE"
 fi
-pkexec bash -c "cat > '$DESKTOP_FILE' << EOF
+sudo bash -c "cat > '$DESKTOP_FILE' << EOF
 [Desktop Entry]
 Type=Application
 Name=$APP_NAME
@@ -89,7 +89,7 @@ Terminal=false
 Categories=System;Settings;
 StartupNotify=true
 EOF"
-pkexec chmod 644 "$DESKTOP_FILE"
+sudo chmod 644 "$DESKTOP_FILE"
 
 # Optional: copy launcher into user applications as well
 mkdir -p "$USER_HOME/.local/share/applications"

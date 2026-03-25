@@ -15,6 +15,7 @@ from gui.app_installer_window import ArchAppInstaller
 from gui.apps_page import AppsPage
 from gui.setup_window import SetupWindow
 from gui.advanced_tweaks import AdvancedTweaks
+from gui.services_page import ServicesPage
 
 app = QApplication(sys.argv)
 
@@ -27,6 +28,7 @@ app_installer_window = None
 app_uninstaller_window = None
 advanced_tweaks_window = None
 apps_page_window = None
+services_page_window = None
 
 
 def ensure_apps_page():
@@ -68,12 +70,21 @@ def open_apps_page():
     setup_window.hide()
 
 
+def open_services_page():
+    global services_page_window
+    if services_page_window is None:
+        services_page_window = ServicesPage(setup_window)
+    services_page_window.show()
+    setup_window.hide()
+
+
 def main():
     # Configure the setup window to call other windows
     setup_window.open_installer.connect(open_app_installer)
     setup_window.open_uninstaller.connect(open_app_uninstaller)
     setup_window.open_advanced_tweaks.connect(open_advanced_tweaks)
     setup_window.open_apps_page.connect(open_apps_page)
+    setup_window.open_services_page.connect(open_services_page)
     # Show setup window
     setup_window.show()
 

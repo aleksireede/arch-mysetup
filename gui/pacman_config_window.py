@@ -12,13 +12,20 @@ from PyQt5.QtWidgets import (
 
 try:
     from .ui_helpers import create_back_button
-    from .theme import apply_dark_theme, create_page_header, apply_status_icon
+    from .theme import configure_main_window, create_page_header, apply_status_icon
 except ImportError:
     from ui_helpers import create_back_button
-    from theme import apply_dark_theme, create_page_header, apply_status_icon
+    from theme import configure_main_window, create_page_header, apply_status_icon
 
 from scripts.extra import reflector_service_timer
-from programs.text_editor import enable_multilib, pacman_enable_color, check_multilib, check_pacman_color
+from programs.text_editor import (
+    enable_multilib,
+    pacman_enable_color,
+    check_multilib,
+    check_pacman_color,
+    pacman_refresh_database,
+    pacman_check_database_refreshed,
+)
 from programs.config import PACMAN_REFLECTOR_CONFIG_PATH
 
 
@@ -33,14 +40,12 @@ class PacmanConfigWindow(QMainWindow):
         self.back_button_container = None
 
         self.setWindowTitle("Pacman Config")
-        self.setGeometry(100, 100, 900, 600)
-        self.setMinimumSize(860, 560)
+        configure_main_window(self)
         self.init_ui()
 
     def init_ui(self):
         central = QWidget()
         self.setCentralWidget(central)
-        apply_dark_theme(self)
         layout = QVBoxLayout(central)
 
         self.back_button_container, _, _, _ = create_back_button(self.go_back)
@@ -49,6 +54,7 @@ class PacmanConfigWindow(QMainWindow):
         self.tweaks = [
             ("multilib", "Enable Pacman Multilib", enable_multilib, "Multilib enable task completed.", self.safe_check_multilib),
             ("pacman_color", "Enable Pacman Color", pacman_enable_color, "Pacman color enable task completed.", self.safe_check_pacman_color),
+            ("pacman_sync", "Refresh Pacman Database", pacman_refresh_database, "Pacman database refresh completed.", self.safe_check_pacman_database),
             ("reflector", "Enable Reflector Timer", reflector_service_timer, "Reflector timer task completed.", self.is_reflector_enabled),
         ]
 
@@ -105,6 +111,12 @@ class PacmanConfigWindow(QMainWindow):
     def safe_check_pacman_color(self):
         try:
             return check_pacman_color()
+        except Exception:
+            return None
+
+    def safe_check_pacman_database(self):
+        try:
+            return pacman_check_database_refreshed()
         except Exception:
             return None
 

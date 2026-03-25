@@ -42,7 +42,7 @@ def reflector_service_timer():
         write_config_file(pacman_reflector_config_path,
                           reflector_text, True, True)
         command = ["pkexec", "systemctl", "enable", "--now", "reflector.timer"]
-        subprocess.run(command)
+        subprocess.run(command, check=True)
 
 
 def git_keystore():

@@ -4,6 +4,7 @@ set -euo pipefail
 REPO_OWNER="aleksireede"
 REPO_NAME="arch-mysetup"
 REPO_URL="https://github.com/${REPO_OWNER}/${REPO_NAME}.git"
+REPO_BRANCH="main"
 INSTALL_DIR="/opt/arch-mysetup"
 LAUNCHER_BIN="/usr/local/bin/arch-mysetup"
 LATEST_RELEASE_API="https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/releases/latest"
@@ -49,8 +50,15 @@ fi
 
 echo "Updating to $LATEST_TAG..."
 git -C "$INSTALL_DIR" remote set-url origin "$REPO_URL"
-git -C "$INSTALL_DIR" fetch --tags --prune
-git -C "$INSTALL_DIR" checkout "$LATEST_TAG"
+git -C "$INSTALL_DIR" fetch origin "$REPO_BRANCH" --tags --prune
+
+if git -C "$INSTALL_DIR" show-ref --verify --quiet "refs/heads/$REPO_BRANCH"; then
+  git -C "$INSTALL_DIR" switch "$REPO_BRANCH"
+else
+  git -C "$INSTALL_DIR" switch --track -c "$REPO_BRANCH" "origin/$REPO_BRANCH"
+fi
+
+git -C "$INSTALL_DIR" pull --ff-only origin "$REPO_BRANCH"
 
 if [[ -x "$LAUNCHER_BIN" ]]; then
   echo "Update complete. Start with: $LAUNCHER_BIN"

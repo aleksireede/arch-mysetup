@@ -4,18 +4,20 @@ from PyQt5.QtWidgets import (
     QVBoxLayout,
     QHBoxLayout,
     QPushButton,
+    QMessageBox,
 )
 
 from programs.apps_file import load_apps_from_file
+from programs.installer_logic import open_terminal
 
 try:
     from .applist_editor_dialog import AppListEditorDialog
     from .ui_helpers import create_back_button
-    from .theme import apply_dark_theme, create_page_header
+    from .theme import configure_main_window, create_page_header
 except ImportError:
     from applist_editor_dialog import AppListEditorDialog
     from ui_helpers import create_back_button
-    from theme import apply_dark_theme, create_page_header
+    from theme import configure_main_window, create_page_header
 
 
 class AppsPage(QMainWindow):
@@ -26,14 +28,12 @@ class AppsPage(QMainWindow):
         self.setup_window = setup_window
         self.back_button_container = None
         self.setWindowTitle("Apps")
-        self.setGeometry(100, 100, 900, 600)
-        self.setMinimumSize(860, 560)
+        configure_main_window(self)
         self.init_ui()
 
     def init_ui(self):
         central = QWidget()
         self.setCentralWidget(central)
-        apply_dark_theme(self)
         layout = QVBoxLayout(central)
 
         self.back_button_container, _, _, _ = create_back_button(self.go_back_to_setup)
@@ -49,11 +49,15 @@ class AppsPage(QMainWindow):
         uninstall_btn.setFixedWidth(self.BUTTON_WIDTH)
         uninstall_btn.clicked.connect(self.open_uninstaller)
 
+        update_btn = QPushButton("System Update")
+        update_btn.setFixedWidth(self.BUTTON_WIDTH)
+        update_btn.clicked.connect(self.run_system_update)
+
         editor_btn = QPushButton("Open App List Editor")
         editor_btn.setFixedWidth(self.BUTTON_WIDTH)
         editor_btn.clicked.connect(self.open_app_list_editor)
 
-        for btn in (install_btn, uninstall_btn, editor_btn):
+        for btn in (install_btn, uninstall_btn, update_btn, editor_btn):
             row = QHBoxLayout()
             row.addStretch()
             row.addWidget(btn)
@@ -85,3 +89,17 @@ class AppsPage(QMainWindow):
         apps = load_apps_from_file()
         dialog = AppListEditorDialog(self, apps)
         dialog.exec()
+
+    def run_system_update(self):
+        try:
+            open_terminal([
+                "paru",
+                "-Suy",
+                "--needed",
+                "--quiet",
+                "--skipreview",
+                "--color",
+                "always",
+            ])
+        except Exception as e:
+            QMessageBox.critical(self, "Update Error", f"Failed to start system update: {e}")

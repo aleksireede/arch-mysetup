@@ -14,12 +14,12 @@ from PyQt5.QtWidgets import (
 
 try:
     from .ui_helpers import create_back_button
-    from .theme import apply_dark_theme, create_page_header, apply_status_icon
+    from .theme import configure_main_window, create_page_header, apply_status_icon
     from .pacman_config_window import PacmanConfigWindow
     from .bash_config_window import BashConfigWindow
 except ImportError:
     from ui_helpers import create_back_button
-    from theme import apply_dark_theme, create_page_header, apply_status_icon
+    from theme import configure_main_window, create_page_header, apply_status_icon
     from pacman_config_window import PacmanConfigWindow
     from bash_config_window import BashConfigWindow
 
@@ -48,14 +48,12 @@ class AdvancedTweaks(QMainWindow):
         self.bash_config_window = None
 
         self.setWindowTitle("Advanced Tweaks")
-        self.setGeometry(100, 100, 940, 700)
-        self.setMinimumSize(900, 660)
+        configure_main_window(self)
         self.init_ui()
 
     def init_ui(self):
         central = QWidget()
         self.setCentralWidget(central)
-        apply_dark_theme(self)
         layout = QVBoxLayout(central)
         content_layout = QHBoxLayout()
 
