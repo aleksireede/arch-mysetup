@@ -1,14 +1,14 @@
+import json
 import shutil
 import subprocess
 import sys
-import json
 import urllib.request
 from pathlib import Path
 
 from PyQt5.QtCore import pyqtSignal, QObject, QThread
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QWidget, QPushButton, QLabel, QHBoxLayout, QMessageBox, QFrame, \
-    QInputDialog, QLineEdit, QSizePolicy, QDialog, QFormLayout, QDialogButtonBox, QApplication
+    QLineEdit, QSizePolicy, QDialog, QFormLayout, QDialogButtonBox, QApplication
 
 programs_dir = str(Path(__file__).resolve().parent.parent.joinpath("programs"))
 sys.path.append(programs_dir)

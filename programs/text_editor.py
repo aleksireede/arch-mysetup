@@ -145,14 +145,14 @@ def enable_multilib():
     # Enable multilib in pacman.conf
     if pacman_conf.exists():
         print("Enabling Multilib...")
-        print(sudo_replace_text(pacman_conf, multilib_disabled, multilib_enabled))
+        sudo_replace_text(pacman_conf, multilib_disabled, multilib_enabled)
 
 
 def disable_multilib():
     # Disable multilib in pacman.conf
     if pacman_conf.exists():
         print("Disabling Multilib...")
-        print(sudo_replace_text(pacman_conf, multilib_enabled, multilib_disabled))
+        sudo_replace_text(pacman_conf, multilib_enabled, multilib_disabled)
 
 
 def check_pacman_color():
@@ -173,14 +173,14 @@ def pacman_enable_color():
     # Enable pacman colored output
     if pacman_conf.exists():
         print("Enabling color in pacman...")
-        print(sudo_replace_text(pacman_conf, "#Color", "Color"))
+        sudo_replace_text(pacman_conf, "#Color", "Color")
 
 
 def pacman_disable_color():
     # Disable pacman colored output
     if pacman_conf.exists():
         print("Enabling color in pacman...")
-        print(sudo_replace_text(pacman_conf, "Color", "#Color"))
+        sudo_replace_text(pacman_conf, "Color", "#Color")
 
 
 def pacman_check_parallel_downloads():
@@ -200,13 +200,13 @@ def pacman_check_parallel_downloads():
 def pacman_enable_parallel_downloads():
     # Enable parallel downloads
     if pacman_conf.exists():
-        print(sudo_replace_text(pacman_conf, "#ParallelDownloads=5", "ParallelDownloads=5"))
+        sudo_replace_text(pacman_conf, "#ParallelDownloads=5", "ParallelDownloads=5")
 
 
 def pacman_disable_parallel_downloads():
     # Disable parallel downloads
     if pacman_conf.exists():
-        print(sudo_replace_text(pacman_conf, "ParallelDownloads=5", "#ParallelDownloads=5"))
+        sudo_replace_text(pacman_conf, "ParallelDownloads=5", "#ParallelDownloads=5")
 
 
 def pacman_check_database_refreshed(max_age_hours=24):

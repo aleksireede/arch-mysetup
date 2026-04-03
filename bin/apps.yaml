@@ -68,9 +68,19 @@
   source: Unknown
   category: Utilities
   conflicts: []
+- name: balena-etcher
+  description: Default description for balena-etcher
+  source: pacman
+  category: Utilities
+  conflicts: []
 - name: baobab
   description: Default description for baobab
   source: Unknown
+  category: Utilities
+  conflicts: []
+- name: base-devel
+  description: Default description for base-devel
+  source: pacman
   category: Utilities
   conflicts: []
 - name: bind
@@ -316,6 +326,11 @@
 - name: keepassxc
   description: Default description for keepassxc
   source: Unknown
+  category: Utilities
+  conflicts: []
+- name: kio-admin
+  description: Default description for kio-admin
+  source: pacman
   category: Utilities
   conflicts: []
 - name: kio-extras
@@ -678,9 +693,19 @@
   source: pacman
   category: Utilities
   conflicts: []
+- name: python-peewee
+  description: Default description for python-peewee
+  source: pacman
+  category: Utilities
+  conflicts: []
 - name: python-pip
   description: Default description for python-pip
   source: Unknown
+  category: Utilities
+  conflicts: []
+- name: python-pipx
+  description: Default description for python-pipx
+  source: pacman
   category: Utilities
   conflicts: []
 - name: python-pycryptodomex
@@ -696,6 +721,11 @@
 - name: python-pyqt6
   description: Default description for python-pyqt6
   source: Unknown
+  category: Utilities
+  conflicts: []
+- name: python-setuptools
+  description: Default description for python-setuptools
+  source: pacman
   category: Utilities
   conflicts: []
 - name: python-websockets
@@ -733,8 +763,18 @@
   source: pacman
   category: Utilities
   conflicts: []
+- name: rocm-opencl-runtime
+  description: Default description for rocm-opencl-runtime
+  source: pacman
+  category: Utilities
+  conflicts: []
 - name: rpi-imager
   description: Default description for rpi-imager
+  source: pacman
+  category: Utilities
+  conflicts: []
+- name: rust
+  description: Default description for rust
   source: pacman
   category: Utilities
   conflicts: []
