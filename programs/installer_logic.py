@@ -44,6 +44,42 @@ def detect_install_method(app_name):
     return None
 
 
+def get_install_method_from_source(source):
+    if not source:
+        return None
+    normalized = str(source).strip().lower()
+    if normalized in {"pacman", "official", "repo", "repository"}:
+        return "pacman"
+    if normalized in {"paru", "aur"}:
+        return "paru"
+    return None
+
+
+def detect_installed_method(app_name):
+    """Best-effort detection of how an installed app should be removed."""
+    try:
+        subprocess.run(
+            ["pacman", "-Qm", app_name],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            check=True
+        )
+        return "paru" if command_exists("paru") else "pacman"
+    except subprocess.CalledProcessError:
+        pass
+
+    try:
+        subprocess.run(
+            ["pacman", "-Q", app_name],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            check=True
+        )
+        return "pacman"
+    except subprocess.CalledProcessError:
+        return None
+
+
 def list_all_installed_apps():
     app_list = []
     app_list.extend(list_apps("pacman"))

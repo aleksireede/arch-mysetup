@@ -3,10 +3,17 @@ from pathlib import Path
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QDialog, QVBoxLayout, QListWidget, QPushButton, QMessageBox, QInputDialog, QHBoxLayout
+from PyQt5.QtWidgets import QDialog, QVBoxLayout, QListWidget, QPushButton, QMessageBox, QInputDialog, QHBoxLayout, \
+    QListWidgetItem
 
-from programs.apps_file import add_app_to_yaml, remove_app_from_yaml
-from programs.installer_logic import command_exists
+from programs.apps_file import add_app_to_yaml, get_app_source, remove_app_from_yaml
+from programs.installer_logic import (
+    command_exists,
+    detect_installed_method,
+    get_install_method_from_source,
+    is_app_installed,
+    remove_apps,
+)
 try:
     from .theme import configure_dialog
 except ImportError:
@@ -30,7 +37,7 @@ class AppListEditorDialog(QDialog):
 
         # List widget
         self.list_widget = QListWidget(self)
-        self.list_widget.addItems(apps)
+        self.populate_list()
 
         # Add button
         add_btn = QPushButton("Add app", self)
@@ -69,38 +76,120 @@ class AppListEditorDialog(QDialog):
         layout.addLayout(list_layout)
         layout.addLayout(button_layout)
 
+    def populate_list(self):
+        self.list_widget.clear()
+        for app in sorted(self.apps):
+            item = QListWidgetItem(app)
+            item.setFlags(item.flags() | Qt.ItemFlag.ItemIsUserCheckable)
+            item.setCheckState(Qt.CheckState.Unchecked)
+            self.list_widget.addItem(item)
+
+    def get_checked_apps(self):
+        checked_apps = []
+        for index in range(self.list_widget.count()):
+            item = self.list_widget.item(index)
+            if item.checkState() == Qt.CheckState.Checked:
+                checked_apps.append(item.text())
+        return checked_apps
+
     def remove_selected(self):
-        item = self.list_widget.currentItem()
-        if not item:
+        selected_apps = self.get_checked_apps()
+        if not selected_apps:
             QMessageBox.information(
-                self, "No selection", "Please select an application to remove.")
+                self, "No selection", "Please check at least one application to remove.")
             return
         confirm = QMessageBox.question(
             self,
             "Confirm Removal",
-            f"Remove '{item.text()}' from the application list?",
+            "Remove the selected applications from the application list and try to uninstall them from the system?\n"
+            f"{', '.join(selected_apps)}",
             QMessageBox.Yes | QMessageBox.No
         )
         if confirm == QMessageBox.Yes:
-            # remove from variable and the visible list then sort it
-            self.apps.remove(item.text())
-            current_row = self.list_widget.currentRow()
-            if current_row >= 0:  # Check if an item is selected
-                self.list_widget.takeItem(current_row)
-            remove_app_from_yaml(item.text())
+            removal_groups = {"pacman": [], "paru": []}
+            not_installed = []
+            unknown_source = []
 
-            self.list_widget.sortItems()
+            for app_name in selected_apps:
+                source = get_app_source(app_name)
+                remove_method = get_install_method_from_source(source)
+                if remove_method is None:
+                    remove_method = detect_installed_method(app_name)
+
+                if app_name in self.apps:
+                    self.apps.remove(app_name)
+                remove_app_from_yaml(app_name)
+
+                if not is_app_installed(app_name):
+                    not_installed.append(app_name)
+                    continue
+
+                if remove_method is None:
+                    unknown_source.append(app_name)
+                    continue
+
+                removal_groups[remove_method].append(app_name)
+
+            self.populate_list()
+
+            started_uninstalls = []
+            failed_uninstalls = []
+            for method, apps in removal_groups.items():
+                if not apps:
+                    continue
+                process = remove_apps(apps, method)
+                if process:
+                    started_uninstalls.extend(f"{app} ({method})" for app in apps)
+                else:
+                    failed_uninstalls.extend(apps)
+
+            messages = [f"Removed from list: {', '.join(selected_apps)}"]
+            if started_uninstalls:
+                messages.append(f"Uninstall started: {', '.join(started_uninstalls)}")
+            if not_installed:
+                messages.append(f"Not installed: {', '.join(not_installed)}")
+            if unknown_source:
+                messages.append(f"Could not determine uninstall source: {', '.join(unknown_source)}")
+            if failed_uninstalls:
+                messages.append(f"Could not start uninstall command: {', '.join(failed_uninstalls)}")
+
+            if failed_uninstalls or unknown_source:
+                QMessageBox.warning(self, "Removal Summary", "\n".join(messages))
+            else:
+                QMessageBox.information(self, "Removal Summary", "\n".join(messages))
 
     def add_apps(self):
-        """Open a dialog to add new Apps to the main program, checking availability first."""
-        new_app, ok = QInputDialog.getText(
-            self, "Add Application", "Enter application name:"
+        """Open a dialog to add one or more apps, checking availability first."""
+        new_apps_text, ok = QInputDialog.getText(
+            self, "Add Application", "Enter application names separated by commas:"
         )
-        if ok and new_app:
+        if not ok:
+            return
+
+        requested_apps = []
+        seen = set()
+        for raw_name in new_apps_text.split(","):
+            app_name = raw_name.strip()
+            if not app_name:
+                continue
+            normalized = app_name.casefold()
+            if normalized in seen:
+                continue
+            seen.add(normalized)
+            requested_apps.append(app_name)
+
+        if not requested_apps:
+            QMessageBox.information(self, "Add Application", "Please enter at least one application name.")
+            return
+
+        added_apps = []
+        duplicate_apps = []
+        not_found_apps = []
+
+        for new_app in requested_apps:
             if new_app in self.apps:
-                QMessageBox.warning(
-                    self, "Warning", f"{new_app} is already in the list.")
-                return
+                duplicate_apps.append(new_app)
+                continue
 
             available_in = []
             try:
@@ -123,19 +212,27 @@ class AppListEditorDialog(QDialog):
                     pass
 
             if available_in:
-                msg = f"{new_app} is available in: {', '.join(available_in)}"
-                # add item to variable and sort it and then add it to the visible list and sort that too
                 self.apps.append(new_app)
                 add_app_to_yaml(new_app)
-                self.apps.sort()
-                self.list_widget.addItem(new_app)
-                self.list_widget.sortItems()
-                QMessageBox.information(
-                    self, "Success", msg + f"\nAdded {new_app} to the list!")
-                # self.refresh_app_list()
+                added_apps.append(f"{new_app} ({', '.join(available_in)})")
             else:
-                QMessageBox.warning(
-                    self, "Not Found", f"{new_app} is not available in pacman or AUR.")
+                not_found_apps.append(new_app)
+
+        self.apps.sort()
+        self.populate_list()
+
+        messages = []
+        if added_apps:
+            messages.append(f"Added: {', '.join(added_apps)}")
+        if duplicate_apps:
+            messages.append(f"Already in list: {', '.join(duplicate_apps)}")
+        if not_found_apps:
+            messages.append(f"Not found in pacman or AUR: {', '.join(not_found_apps)}")
+
+        if not added_apps:
+            QMessageBox.warning(self, "Add Application", "\n".join(messages))
+        else:
+            QMessageBox.information(self, "Add Application", "\n".join(messages))
 
     def get_apps(self):
         return self.apps

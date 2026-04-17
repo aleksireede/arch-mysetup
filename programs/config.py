@@ -4,6 +4,9 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parent.parent
 BIN_DIR = REPO_ROOT.joinpath("bin")
 ICONS_DIR = REPO_ROOT.joinpath("icons")
+GAME_ICONS_DIR = ICONS_DIR.joinpath("games")
+DEV_TOOL_ICONS_DIR = ICONS_DIR.joinpath("dev_tools")
+BROWSER_ICONS_DIR = ICONS_DIR.joinpath("browsers")
 
 # Icon paths
 CHECKMARK_ICON_PATH = ICONS_DIR.joinpath("checkmark.svg")
@@ -36,3 +39,6 @@ ZEROCONF_TEMPLATE_PATH = BIN_DIR.joinpath("zeroconf.txt")
 AIRPLAY_TEMPLATE_PATH = BIN_DIR.joinpath("airplay.txt")
 XORG_KEYBOARD_TEMPLATE_PATH = BIN_DIR.joinpath("xorg_keyboard_layout.txt")
 REFLECTOR_TEMPLATE_PATH = BIN_DIR.joinpath("reflector.txt")
+GAME_CATALOG_PATH = BIN_DIR.joinpath("games.yaml")
+DEV_TOOL_CATALOG_PATH = BIN_DIR.joinpath("dev_tools.yaml")
+BROWSER_CATALOG_PATH = BIN_DIR.joinpath("browsers.yaml")

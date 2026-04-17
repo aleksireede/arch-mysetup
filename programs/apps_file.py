@@ -35,6 +35,13 @@ class AppsFileStore:
         """Extract apps from YAML data into a list."""
         return [app["name"] for app in yaml_data if "name" in app]
 
+    def get_app_source(self, app_name):
+        yaml_data = self.load_yaml()
+        for app in yaml_data:
+            if app.get("name") == app_name:
+                return app.get("source")
+        return None
+
     def add_app_to_yaml(self, app_to_add):
         yaml_data = self.load_yaml()
         source = detect_install_method(app_to_add)
@@ -77,6 +84,10 @@ def load_yaml():
 
 def get_apps(yaml_data):
     return apps_file_store.get_apps(yaml_data)
+
+
+def get_app_source(app_name):
+    return apps_file_store.get_app_source(app_name)
 
 
 def add_app_to_yaml(app_to_add):

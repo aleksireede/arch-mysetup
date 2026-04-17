@@ -3,17 +3,24 @@ from PyQt5.QtWidgets import (
     QFrame,
     QHBoxLayout,
     QLabel,
+    QLineEdit,
     QMainWindow,
     QMessageBox,
     QPushButton,
+    QInputDialog,
     QVBoxLayout,
     QWidget,
 )
 
 from programs.services_logic import (
-    enable_user_service,
-    get_managed_user_services,
-    start_user_service,
+    MANAGED_SERVICES,
+    enable_service,
+    get_managed_services,
+    has_system_services,
+    invalidate_sudo_timestamp,
+    is_sudo_auth_error,
+    start_service,
+    validate_sudo_password,
 )
 
 try:
@@ -30,7 +37,7 @@ class ServicesWorker(QObject):
 
     def run(self):
         try:
-            self.finished.emit(get_managed_user_services())
+            self.finished.emit(get_managed_services())
         except Exception as e:
             self.error.emit(str(e))
 
@@ -39,14 +46,14 @@ class ServiceActionWorker(QObject):
     finished = pyqtSignal()
     error = pyqtSignal(str)
 
-    def __init__(self, action, unit_name):
+    def __init__(self, action, service):
         super().__init__()
         self.action = action
-        self.unit_name = unit_name
+        self.service = service
 
     def run(self):
         try:
-            self.action(self.unit_name)
+            self.action(self.service)
             self.finished.emit()
         except Exception as e:
             self.error.emit(str(e))
@@ -64,6 +71,7 @@ class ServicesPage(QMainWindow):
         self.refresh_button = None
         self.status_label = None
         self.service_rows = {}
+        self.sudo_authenticated = False
 
         self.setWindowTitle("Services")
         configure_main_window(self)
@@ -78,7 +86,7 @@ class ServicesPage(QMainWindow):
         self.back_button_container, _, _, _ = create_back_button(self.go_back_to_setup)
         header_widget = create_page_header(self.back_button_container, "Services")
 
-        self.status_label = QLabel("Loading user services...")
+        self.status_label = QLabel("Loading services...")
         self.status_label.setObjectName("syncStatusLabel")
 
         self.refresh_button = QPushButton("Refresh")
@@ -86,14 +94,11 @@ class ServicesPage(QMainWindow):
         self.refresh_button.setFixedWidth(200)
 
         services_layout = QVBoxLayout()
-        for service_key, service_name in (
-            ("syncthing", "Syncthing"),
-            ("ollama", "Ollama"),
-        ):
+        for service in MANAGED_SERVICES:
             card = QFrame()
             card_layout = QVBoxLayout(card)
 
-            name_label = QLabel(service_name)
+            name_label = QLabel(service["name"])
             name_label.setStyleSheet("font-size: 18px; font-weight: 600;")
             state_label = QLabel("Loading...")
 
@@ -112,24 +117,21 @@ class ServicesPage(QMainWindow):
 
             services_layout.addWidget(card)
 
-            self.service_rows[service_key] = {
+            self.service_rows[service["key"]] = {
                 "state_label": state_label,
                 "start_button": start_button,
                 "enable_button": enable_button,
             }
-
-        self.service_rows["syncthing"]["start_button"].clicked.connect(
-            lambda: self.run_service_action(start_user_service, "syncthing.service", "Starting Syncthing...")
-        )
-        self.service_rows["syncthing"]["enable_button"].clicked.connect(
-            lambda: self.run_service_action(enable_user_service, "syncthing.service", "Enabling Syncthing...")
-        )
-        self.service_rows["ollama"]["start_button"].clicked.connect(
-            lambda: self.run_service_action(start_user_service, "ollama.service", "Starting Ollama...")
-        )
-        self.service_rows["ollama"]["enable_button"].clicked.connect(
-            lambda: self.run_service_action(enable_user_service, "ollama.service", "Enabling Ollama...")
-        )
+            start_button.clicked.connect(
+                lambda checked=False, current_service=service: self.run_service_action(
+                    start_service, current_service, f"Starting {current_service['name']}..."
+                )
+            )
+            enable_button.clicked.connect(
+                lambda checked=False, current_service=service: self.run_service_action(
+                    enable_service, current_service, f"Enabling {current_service['name']}..."
+                )
+            )
 
         layout.addWidget(header_widget)
         layout.addSpacing(12)
@@ -146,9 +148,14 @@ class ServicesPage(QMainWindow):
     def refresh_services_async(self):
         if self.thread and self.thread.isRunning():
             return
+        if not self.ensure_system_access():
+            self.set_controls_enabled(True)
+            self.status_label.setText("System service access not granted.")
+            self.set_all_state_labels("Status unavailable.")
+            return
 
         self.set_controls_enabled(False)
-        self.status_label.setText("Refreshing user services...")
+        self.status_label.setText("Refreshing services...")
         self.set_all_state_labels("Refreshing...")
 
         self.thread = QThread()
@@ -167,17 +174,19 @@ class ServicesPage(QMainWindow):
 
     def on_services_loaded(self, services):
         self.set_controls_enabled(True)
-        self.status_label.setText("User services are ready.")
+        self.status_label.setText("Services are ready.")
         for service in services:
             row = self.service_rows.get(service["key"])
             if row is None:
                 continue
             row["state_label"].setText(
-                f"Unit: {service['unit']} | Enabled: {service['enabled_state']} | Active: {service['active_state']}"
+                f"Scope: {service['scope']} | Unit: {service['unit']} | Enabled: {service['enabled_state']} | Active: {service['active_state']}"
             )
 
     def on_services_error(self, error_message):
         self.set_controls_enabled(True)
+        if is_sudo_auth_error(error_message):
+            self.sudo_authenticated = False
         self.set_all_state_labels("Status unavailable.")
         self.status_label.setText(f"Could not load services: {error_message}")
 
@@ -185,15 +194,18 @@ class ServicesPage(QMainWindow):
         self.thread = None
         self.worker = None
 
-    def run_service_action(self, action, unit_name, status_message):
+    def run_service_action(self, action, service, status_message):
         if self.action_thread and self.action_thread.isRunning():
+            return
+        if service.get("scope") == "system" and not self.ensure_system_access():
+            self.status_label.setText("System service action cancelled.")
             return
 
         self.set_controls_enabled(False)
         self.status_label.setText(status_message)
 
         self.action_thread = QThread()
-        self.action_worker = ServiceActionWorker(action, unit_name)
+        self.action_worker = ServiceActionWorker(action, service)
         self.action_worker.moveToThread(self.action_thread)
         self.action_thread.started.connect(self.action_worker.run)
         self.action_worker.finished.connect(self.on_service_action_finished)
@@ -212,6 +224,8 @@ class ServicesPage(QMainWindow):
 
     def on_service_action_error(self, error_message):
         self.set_controls_enabled(True)
+        if is_sudo_auth_error(error_message):
+            self.sudo_authenticated = False
         self.status_label.setText(f"Service action failed: {error_message}")
         QMessageBox.critical(self, "Service Error", error_message)
 
@@ -229,6 +243,33 @@ class ServicesPage(QMainWindow):
         for row in self.service_rows.values():
             row["state_label"].setText(text)
 
+    def ensure_system_access(self):
+        if not has_system_services():
+            return True
+        if self.sudo_authenticated:
+            return True
+
+        password, ok = QInputDialog.getText(
+            self,
+            "Administrator Access",
+            "Enter your admin password once for Services page actions:",
+            QLineEdit.Password,
+        )
+        if not ok:
+            return False
+        if not password:
+            QMessageBox.warning(self, "Authentication Required", "Administrator password is required.")
+            return False
+
+        try:
+            validate_sudo_password(password)
+            self.sudo_authenticated = True
+            return True
+        except RuntimeError as error:
+            QMessageBox.critical(self, "Authentication Failed", str(error))
+            self.sudo_authenticated = False
+            return False
+
     def closeEvent(self, event):
         if self.thread and self.thread.isRunning():
             self.thread.quit()
@@ -236,4 +277,7 @@ class ServicesPage(QMainWindow):
         if self.action_thread and self.action_thread.isRunning():
             self.action_thread.quit()
             self.action_thread.wait(3000)
+        if self.sudo_authenticated:
+            invalidate_sudo_timestamp()
+            self.sudo_authenticated = False
         super().closeEvent(event)

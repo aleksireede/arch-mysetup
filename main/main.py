@@ -13,6 +13,9 @@ from programs.apps_file import load_yaml
 from gui.app_uninstaller import AppUninstaller
 from gui.app_installer_window import ArchAppInstaller
 from gui.apps_page import AppsPage
+from gui.browsers_page import BrowsersPage
+from gui.dev_tools_page import DevToolsPage
+from gui.games_page import GamesPage
 from gui.setup_window import SetupWindow
 from gui.advanced_tweaks import AdvancedTweaks
 from gui.services_page import ServicesPage
@@ -29,6 +32,9 @@ app_uninstaller_window = None
 advanced_tweaks_window = None
 apps_page_window = None
 services_page_window = None
+games_page_window = None
+dev_tools_page_window = None
+browsers_page_window = None
 
 
 def ensure_apps_page():
@@ -78,6 +84,30 @@ def open_services_page():
     setup_window.hide()
 
 
+def open_games_page():
+    global games_page_window
+    if games_page_window is None:
+        games_page_window = GamesPage(setup_window)
+    games_page_window.show()
+    setup_window.hide()
+
+
+def open_dev_tools_page():
+    global dev_tools_page_window
+    if dev_tools_page_window is None:
+        dev_tools_page_window = DevToolsPage(setup_window)
+    dev_tools_page_window.show()
+    setup_window.hide()
+
+
+def open_browsers_page():
+    global browsers_page_window
+    if browsers_page_window is None:
+        browsers_page_window = BrowsersPage(setup_window)
+    browsers_page_window.show()
+    setup_window.hide()
+
+
 def main():
     # Configure the setup window to call other windows
     setup_window.open_installer.connect(open_app_installer)
@@ -85,6 +115,9 @@ def main():
     setup_window.open_advanced_tweaks.connect(open_advanced_tweaks)
     setup_window.open_apps_page.connect(open_apps_page)
     setup_window.open_services_page.connect(open_services_page)
+    setup_window.open_games_page.connect(open_games_page)
+    setup_window.open_dev_tools_page.connect(open_dev_tools_page)
+    setup_window.open_browsers_page.connect(open_browsers_page)
     # Show setup window
     setup_window.show()
 

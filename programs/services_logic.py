@@ -1,18 +1,18 @@
-import shutil
 import subprocess
-from pathlib import Path
 
 
-MANAGED_USER_SERVICES = [
+MANAGED_SERVICES = [
     {
         "key": "syncthing",
         "name": "Syncthing",
         "unit": "syncthing.service",
+        "scope": "user",
     },
     {
-        "key": "ollama",
-        "name": "Ollama",
-        "unit": "ollama.service",
+        "key": "fstrim",
+        "name": "Filesystem Trim Timer",
+        "unit": "fstrim.timer",
+        "scope": "system",
     },
 ]
 
@@ -27,15 +27,24 @@ def _run_systemctl_user(*args):
     )
 
 
-def _daemon_reload_user():
-    result = _run_systemctl_user("daemon-reload")
-    if result.returncode != 0:
-        error_text = result.stderr.strip() or "Failed to reload user systemd daemon"
-        raise RuntimeError(error_text)
+def _run_systemctl_system(*args):
+    return subprocess.run(
+        ["sudo", "-n", "systemctl", *args],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        check=False,
+    )
 
 
-def _read_systemctl_user_state(*args):
-    result = _run_systemctl_user(*args)
+def _run_systemctl(service, *args):
+    if service.get("scope") == "system":
+        return _run_systemctl_system(*args)
+    return _run_systemctl_user(*args)
+
+
+def _read_systemctl_state(service, *args):
+    result = _run_systemctl(service, *args)
     stdout = result.stdout.strip()
     if result.returncode != 0:
         if stdout:
@@ -47,66 +56,68 @@ def _read_systemctl_user_state(*args):
     return stdout or "unknown"
 
 
-def _ensure_ollama_user_service(unit_name):
-    if unit_name != "ollama.service":
-        return
+def has_system_services():
+    return any(service.get("scope") == "system" for service in MANAGED_SERVICES)
 
-    user_systemd_dir = Path.home() / ".config" / "systemd" / "user"
-    service_path = user_systemd_dir / unit_name
-    if service_path.exists():
-        return
 
-    ollama_path = shutil.which("ollama")
-    if not ollama_path:
-        raise RuntimeError("`ollama` binary was not found in PATH.")
-
-    user_systemd_dir.mkdir(parents=True, exist_ok=True)
-    service_path.write_text(
-        "\n".join(
-            [
-                "[Unit]",
-                "Description=Ollama",
-                "After=default.target",
-                "",
-                "[Service]",
-                f"ExecStart={ollama_path} serve",
-                "Restart=always",
-                "RestartSec=3",
-                "",
-                "[Install]",
-                "WantedBy=default.target",
-                "",
-            ]
-        ),
-        encoding="utf-8",
+def validate_sudo_password(password):
+    result = subprocess.run(
+        ["sudo", "-S", "-v"],
+        input=f"{password}\n",
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        check=False,
     )
-    _daemon_reload_user()
+    if result.returncode != 0:
+        error_text = result.stderr.strip() or "Failed to authenticate sudo session"
+        raise RuntimeError(error_text)
 
 
-def get_managed_user_services():
+def invalidate_sudo_timestamp():
+    subprocess.run(
+        ["sudo", "-K"],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        check=False,
+    )
+
+
+def is_sudo_auth_error(error_message):
+    normalized = (error_message or "").strip().lower()
+    return any(
+        token in normalized
+        for token in (
+            "sudo",
+            "a password is required",
+            "authentication",
+            "not in the sudoers",
+        )
+    )
+
+
+def get_managed_services():
     services = []
-    for service in MANAGED_USER_SERVICES:
+    for service in MANAGED_SERVICES:
         services.append(
             {
                 **service,
-                "enabled_state": _read_systemctl_user_state("is-enabled", service["unit"]),
-                "active_state": _read_systemctl_user_state("is-active", service["unit"]),
+                "enabled_state": _read_systemctl_state(service, "is-enabled", service["unit"]),
+                "active_state": _read_systemctl_state(service, "is-active", service["unit"]),
             }
         )
     return services
 
 
-def start_user_service(unit_name):
-    _ensure_ollama_user_service(unit_name)
-    result = _run_systemctl_user("start", unit_name)
+def start_service(service):
+    result = _run_systemctl(service, "start", service["unit"])
     if result.returncode != 0:
-        error_text = result.stderr.strip() or f"Failed to start {unit_name}"
+        error_text = result.stderr.strip() or f"Failed to start {service['unit']}"
         raise RuntimeError(error_text)
 
 
-def enable_user_service(unit_name):
-    _ensure_ollama_user_service(unit_name)
-    result = _run_systemctl_user("enable", unit_name)
+def enable_service(service):
+    result = _run_systemctl(service, "enable", service["unit"])
     if result.returncode != 0:
-        error_text = result.stderr.strip() or f"Failed to enable {unit_name}"
+        error_text = result.stderr.strip() or f"Failed to enable {service['unit']}"
         raise RuntimeError(error_text)

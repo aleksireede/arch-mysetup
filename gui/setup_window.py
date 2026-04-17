@@ -101,6 +101,9 @@ class SetupWindow(QMainWindow):
     open_advanced_tweaks = pyqtSignal()
     open_apps_page = pyqtSignal()
     open_services_page = pyqtSignal()
+    open_games_page = pyqtSignal()
+    open_dev_tools_page = pyqtSignal()
+    open_browsers_page = pyqtSignal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -128,6 +131,9 @@ class SetupWindow(QMainWindow):
         self.remove_button = None
         self.apps_page_button = None
         self.services_page_button = None
+        self.games_page_button = None
+        self.dev_tools_page_button = None
+        self.browsers_page_button = None
         self.add_network_drive_button = None
         self.install_paru_button = None
         # end buttons
@@ -223,6 +229,15 @@ class SetupWindow(QMainWindow):
         self.services_page_button = QPushButton("Services")
         self.services_page_button.clicked.connect(self.open_services_page.emit)
 
+        self.games_page_button = QPushButton("Games")
+        self.games_page_button.clicked.connect(self.open_games_page.emit)
+
+        self.dev_tools_page_button = QPushButton("Developer Tools")
+        self.dev_tools_page_button.clicked.connect(self.open_dev_tools_page.emit)
+
+        self.browsers_page_button = QPushButton("Web Browsers")
+        self.browsers_page_button.clicked.connect(self.open_browsers_page.emit)
+
         self.advanced_tweak_btn = QPushButton("Advanced Tweaks")
         self.advanced_tweak_btn.clicked.connect(self.open_advanced_tweaks.emit)
 
@@ -238,15 +253,24 @@ class SetupWindow(QMainWindow):
         self.add_network_drive_button.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         self.apps_page_button.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         self.services_page_button.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        self.games_page_button.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        self.dev_tools_page_button.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        self.browsers_page_button.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         self.add_network_drive_button.setFixedWidth(main_button_width)
         self.apps_page_button.setFixedWidth(main_button_width)
         self.services_page_button.setFixedWidth(main_button_width)
+        self.games_page_button.setFixedWidth(main_button_width)
+        self.dev_tools_page_button.setFixedWidth(main_button_width)
+        self.browsers_page_button.setFixedWidth(main_button_width)
         self.advanced_tweak_btn.setFixedWidth(main_button_width)
 
         # Bottom Button layout
         self.bottom_layout = QVBoxLayout()
         self.bottom_layout.setSpacing(10)
         self.bottom_layout.addWidget(self.apps_page_button)
+        self.bottom_layout.addWidget(self.games_page_button)
+        self.bottom_layout.addWidget(self.dev_tools_page_button)
+        self.bottom_layout.addWidget(self.browsers_page_button)
         self.bottom_layout.addWidget(self.services_page_button)
         self.bottom_layout.addWidget(self.add_network_drive_button)
         self.bottom_layout.addWidget(self.advanced_tweak_btn)

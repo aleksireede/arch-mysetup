@@ -3,11 +3,6 @@
   source: Unknown
   category: Utilities
   conflicts: []
-- name: adwaita-icon-theme
-  description: Default description for adwaita-icon-theme
-  source: pacman
-  category: Utilities
-  conflicts: []
 - name: alsa-plugins
   description: Default description for alsa-plugins
   source: Unknown
@@ -20,11 +15,6 @@
   conflicts: []
 - name: ananicy-cpp
   description: Default description for ananicy-cpp
-  source: Unknown
-  category: Utilities
-  conflicts: []
-- name: android-sdk-platform-tools
-  description: Default description for android-sdk-platform-tools
   source: Unknown
   category: Utilities
   conflicts: []
@@ -48,19 +38,9 @@
   source: Unknown
   category: Utilities
   conflicts: []
-- name: aria2
-  description: Default description for aria2
-  source: pacman
-  category: Utilities
-  conflicts: []
 - name: ark
   description: Default description for ark
   source: pacman
-  category: Utilities
-  conflicts: []
-- name: aur-sync-vote
-  description: Default description for aur-sync-vote
-  source: Unknown
   category: Utilities
   conflicts: []
 - name: awesome-terminal-fonts
@@ -71,11 +51,6 @@
 - name: balena-etcher
   description: Default description for balena-etcher
   source: pacman
-  category: Utilities
-  conflicts: []
-- name: baobab
-  description: Default description for baobab
-  source: Unknown
   category: Utilities
   conflicts: []
 - name: base-devel
@@ -90,26 +65,6 @@
   conflicts: []
 - name: binwalk
   description: Default description for binwalk
-  source: Unknown
-  category: Utilities
-  conflicts: []
-- name: chromium
-  description: Default description for chromium
-  source: pacman
-  category: Utilities
-  conflicts: []
-- name: colordiff
-  description: Default description for colordiff
-  source: Unknown
-  category: Utilities
-  conflicts: []
-- name: colorgcc
-  description: Default description for colorgcc
-  source: Unknown
-  category: Utilities
-  conflicts: []
-- name: cowsay
-  description: Default description for cowsay
   source: Unknown
   category: Utilities
   conflicts: []
@@ -131,16 +86,6 @@
 - name: dosfstools
   description: Default description for dosfstools
   source: Unknown
-  category: Utilities
-  conflicts: []
-- name: dream-background-remover
-  description: Default description for dream-background-remover
-  source: Unknown
-  category: Utilities
-  conflicts: []
-- name: dropbox
-  description: Default description for dropbox
-  source: pacman
   category: Utilities
   conflicts: []
 - name: efibootmgr
@@ -183,18 +128,8 @@
   source: Unknown
   category: Utilities
   conflicts: []
-- name: flatpak-kcm
-  description: Default description for flatpak-kcm
-  source: pacman
-  category: Utilities
-  conflicts: []
 - name: fontconfig
   description: Default description for fontconfig
-  source: Unknown
-  category: Utilities
-  conflicts: []
-- name: fortune-mod
-  description: Default description for fortune-mod
   source: Unknown
   category: Utilities
   conflicts: []
@@ -233,41 +168,6 @@
   source: Unknown
   category: Utilities
   conflicts: []
-- name: gnome-xcf-thumbnailer
-  description: Default description for gnome-xcf-thumbnailer
-  source: Unknown
-  category: Utilities
-  conflicts: []
-- name: goverlay
-  description: Default description for goverlay
-  source: Unknown
-  category: Utilities
-  conflicts: []
-- name: gst-plugin-va
-  description: Default description for gst-plugin-va
-  source: Unknown
-  category: Utilities
-  conflicts: []
-- name: gst-plugins-bad
-  description: Default description for gst-plugins-bad
-  source: Unknown
-  category: Utilities
-  conflicts: []
-- name: gst-plugins-base
-  description: Default description for gst-plugins-base
-  source: Unknown
-  category: Utilities
-  conflicts: []
-- name: gst-plugins-base-libs
-  description: Default description for gst-plugins-base-libs
-  source: Unknown
-  category: Utilities
-  conflicts: []
-- name: gst-plugins-good
-  description: Default description for gst-plugins-good
-  source: Unknown
-  category: Utilities
-  conflicts: []
 - name: gstreamer
   description: Default description for gstreamer
   source: Unknown
@@ -288,11 +188,6 @@
   source: pacman
   category: Utilities
   conflicts: []
-- name: img2pdf
-  description: Default description for img2pdf
-  source: Unknown
-  category: Utilities
-  conflicts: []
 - name: irqbalance
   description: Default description for irqbalance
   source: Unknown
@@ -301,11 +196,6 @@
 - name: jdk-openjdk
   description: Default description for jdk-openjdk
   source: Unknown
-  category: Utilities
-  conflicts: []
-- name: jetbrains-toolbox
-  description: Default description for jetbrains-toolbox
-  source: paru
   category: Utilities
   conflicts: []
 - name: kcalc
@@ -468,18 +358,8 @@
   source: Unknown
   category: Utilities
   conflicts: []
-- name: lolcat
-  description: Default description for lolcat
-  source: Unknown
-  category: Utilities
-  conflicts: []
 - name: lsp-plugins
   description: Default description for lsp-plugins
-  source: Unknown
-  category: Utilities
-  conflicts: []
-- name: lutris
-  description: Default description for lutris
   source: Unknown
   category: Utilities
   conflicts: []
@@ -490,11 +370,6 @@
   conflicts: []
 - name: makepkg-optimize-mold
   description: Default description for makepkg-optimize-mold
-  source: Unknown
-  category: Utilities
-  conflicts: []
-- name: man-pages-fi
-  description: Default description for man-pages-fi
   source: Unknown
   category: Utilities
   conflicts: []
@@ -525,16 +400,6 @@
   conflicts: []
 - name: mission-center
   description: Default description for mission-center
-  source: Unknown
-  category: Utilities
-  conflicts: []
-- name: mpg123
-  description: Default description for mpg123
-  source: Unknown
-  category: Utilities
-  conflicts: []
-- name: net-tools
-  description: Default description for net-tools
   source: Unknown
   category: Utilities
   conflicts: []
@@ -578,18 +443,8 @@
   source: Unknown
   category: Utilities
   conflicts: []
-- name: ollama
-  description: Default description for ollama
-  source: pacman
-  category: Utilities
-  conflicts: []
 - name: openal
   description: Default description for openal
-  source: Unknown
-  category: Utilities
-  conflicts: []
-- name: opera
-  description: Default description for opera
   source: Unknown
   category: Utilities
   conflicts: []
@@ -673,44 +528,14 @@
   source: Unknown
   category: Utilities
   conflicts: []
-- name: prismlauncher
-  description: Default description for prismlauncher
-  source: Unknown
-  category: Utilities
-  conflicts: []
 - name: pwvucontrol
   description: Default description for pwvucontrol
   source: Unknown
   category: Utilities
   conflicts: []
-- name: python-glfw
-  description: Default description for python-glfw
-  source: Unknown
-  category: Utilities
-  conflicts: []
-- name: python-mutagen
-  description: Default description for python-mutagen
-  source: pacman
-  category: Utilities
-  conflicts: []
-- name: python-peewee
-  description: Default description for python-peewee
-  source: pacman
-  category: Utilities
-  conflicts: []
 - name: python-pip
   description: Default description for python-pip
   source: Unknown
-  category: Utilities
-  conflicts: []
-- name: python-pipx
-  description: Default description for python-pipx
-  source: pacman
-  category: Utilities
-  conflicts: []
-- name: python-pycryptodomex
-  description: Default description for python-pycryptodomex
-  source: pacman
   category: Utilities
   conflicts: []
 - name: python-pyqt5
@@ -725,11 +550,6 @@
   conflicts: []
 - name: python-setuptools
   description: Default description for python-setuptools
-  source: pacman
-  category: Utilities
-  conflicts: []
-- name: python-websockets
-  description: Default description for python-websockets
   source: pacman
   category: Utilities
   conflicts: []
@@ -763,21 +583,6 @@
   source: pacman
   category: Utilities
   conflicts: []
-- name: rocm-opencl-runtime
-  description: Default description for rocm-opencl-runtime
-  source: pacman
-  category: Utilities
-  conflicts: []
-- name: rpi-imager
-  description: Default description for rpi-imager
-  source: pacman
-  category: Utilities
-  conflicts: []
-- name: rust
-  description: Default description for rust
-  source: pacman
-  category: Utilities
-  conflicts: []
 - name: samba
   description: Default description for samba
   source: pacman
@@ -803,11 +608,6 @@
   source: pacman
   category: Utilities
   conflicts: []
-- name: sleepy-launcher
-  description: Default description for sleepy-launcher
-  source: paru
-  category: Utilities
-  conflicts: []
 - name: snapchat
   description: Default description for snapchat
   source: Unknown
@@ -818,34 +618,14 @@
   source: pacman
   category: Utilities
   conflicts: []
-- name: spotiflac-bin
-  description: Default description for spotiflac-bin
-  source: paru
-  category: Utilities
-  conflicts: []
 - name: spotify-launcher
   description: Default description for spotify-launcher
   source: pacman
   category: Utilities
   conflicts: []
-- name: sshpilot
-  description: Default description for sshpilot
-  source: Unknown
-  category: Utilities
-  conflicts: []
-- name: steam
-  description: Default description for steam
-  source: Unknown
-  category: Utilities
-  conflicts: []
 - name: syncthing-bin
   description: Default description for syncthing-bin
   source: Unknown
-  category: Utilities
-  conflicts: []
-- name: tartube
-  description: Default description for tartube
-  source: pacman
   category: Utilities
   conflicts: []
 - name: telegram-desktop
@@ -858,24 +638,9 @@
   source: Unknown
   category: Utilities
   conflicts: []
-- name: udftools
-  description: Default description for udftools
-  source: pacman
-  category: Utilities
-  conflicts: []
 - name: ufw-extras
   description: Default description for ufw-extras
   source: pacman
-  category: Utilities
-  conflicts: []
-- name: unrar
-  description: Default description for unrar
-  source: Unknown
-  category: Utilities
-  conflicts: []
-- name: uresourced
-  description: Default description for uresourced
-  source: Unknown
   category: Utilities
   conflicts: []
 - name: usbmuxd
@@ -885,26 +650,6 @@
   conflicts: []
 - name: vesktop-bin
   description: Default description for vesktop-bin
-  source: Unknown
-  category: Utilities
-  conflicts: []
-- name: visual-studio-code-bin
-  description: Default description for visual-studio-code-bin
-  source: pacman
-  category: Utilities
-  conflicts: []
-- name: vkbasalt
-  description: Default description for vkbasalt
-  source: Unknown
-  category: Utilities
-  conflicts: []
-- name: vlc
-  description: Default description for vlc
-  source: Unknown
-  category: Utilities
-  conflicts: []
-- name: vlc-plugins-all
-  description: Default description for vlc-plugins-all
   source: Unknown
   category: Utilities
   conflicts: []
@@ -923,23 +668,8 @@
   source: Unknown
   category: Utilities
   conflicts: []
-- name: yt-dlp
-  description: Default description for yt-dlp
-  source: pacman
-  category: Utilities
-  conflicts: []
-- name: zapzap
-  description: Default description for zapzap
-  source: Unknown
-  category: Utilities
-  conflicts: []
 - name: zenmap
   description: Default description for zenmap
   source: pacman
-  category: Utilities
-  conflicts: []
-- name: zfs-dkms
-  description: Default description for zfs-dkms
-  source: Unknown
   category: Utilities
   conflicts: []
