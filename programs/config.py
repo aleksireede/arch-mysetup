@@ -16,6 +16,7 @@ BLUE_RIGHT_ARROW_ICON_PATH = ICONS_DIR.joinpath("blue_right_arrow.svg")
 
 # Managed versions
 BASH_EXTRA_VERSION = "1.2"
+BASH_CUSTOM_VERSION = "1.2"
 
 # System/user config paths
 PACMAN_CONF_PATH = Path("/etc/pacman.conf")
@@ -35,6 +36,7 @@ AIRPLAY_DEST_PATH = Path.home().joinpath(
 
 # Template/source file paths
 BASH_EXTRA_TEMPLATE_PATH = BIN_DIR.joinpath("bash_extra.sh")
+BASH_CUSTOM_TEMPLATE_PATH = BIN_DIR.joinpath("bashrc.sh")
 ZEROCONF_TEMPLATE_PATH = BIN_DIR.joinpath("zeroconf.txt")
 AIRPLAY_TEMPLATE_PATH = BIN_DIR.joinpath("airplay.txt")
 XORG_KEYBOARD_TEMPLATE_PATH = BIN_DIR.joinpath("xorg_keyboard_layout.txt")

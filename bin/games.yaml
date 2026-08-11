@@ -1,8 +1,3 @@
-- name: sleepy-launcher
-  title: Sleepy Launcher
-  description: Unofficial Zenless Zone Zero launcher for Linux.
-  source: paru
-  icon_url: https://dl.flathub.org/media/moe/launcher/sleepy-launcher/e70cf21356a1218b44f23e962d841657/icons/128x128/moe.launcher.sleepy-launcher.png
 - name: steam
   title: Steam
   description: Valve launcher and storefront for PC games.

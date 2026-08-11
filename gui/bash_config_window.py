@@ -23,13 +23,19 @@ from programs.text_editor import (
     update_bash_extra,
     enable_bash_extra,
     bashrc_extra_text,
+    update_bash_custom,
 )
 from programs.config import (
     BASH_EXTRA_PATH,
     BASHRC_PATH,
-    FISH_CONFIG_PATH,
-    BASH_EXTRA_VERSION,
+    BASH_EXTRA_VERSION, BASH_CUSTOM_VERSION,
 )
+
+
+def is_bash_hook_enabled():
+    if not BASHRC_PATH.exists():
+        return False
+    return bashrc_extra_text in BASHRC_PATH.read_text()
 
 
 class BashConfigWindow(QMainWindow):
@@ -44,7 +50,7 @@ class BashConfigWindow(QMainWindow):
         self.tweaks = []
         self.back_button_container = None
 
-        self.setWindowTitle("Bash/Fish Config")
+        self.setWindowTitle("Bash Config")
         configure_main_window(self)
         self.init_ui()
 
@@ -54,7 +60,7 @@ class BashConfigWindow(QMainWindow):
         layout = QVBoxLayout(central)
 
         self.back_button_container, _, _, _ = create_back_button(self.go_back)
-        header_widget = create_page_header(self.back_button_container, "Bash/Fish Config")
+        header_widget = create_page_header(self.back_button_container, "Bash Config")
 
         self.tweaks = [
             (
@@ -65,11 +71,18 @@ class BashConfigWindow(QMainWindow):
                 self.is_bash_extra_up_to_date,
             ),
             (
+                "bash_custom_file",
+                "Install/Update Custom Bash config",
+                update_bash_custom,
+                "Extra Bash config updated.",
+                self.is_bash_custom_up_to_date,
+            ),
+            (
                 "bash_hook",
                 "Enable Extra Bash config",
                 enable_bash_extra,
                 "Enabled Extra Bash config.",
-                self.is_bash_hook_enabled,
+                is_bash_hook_enabled,
             ),
         ]
 
@@ -110,6 +123,9 @@ class BashConfigWindow(QMainWindow):
         self.hide()
 
     def run_tweak(self, callback, success_message):
+        """
+        todo: add return type
+        """
         try:
             callback()
             QMessageBox.information(self, "Done", success_message)
@@ -122,7 +138,7 @@ class BashConfigWindow(QMainWindow):
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Action failed: {e}")
 
-    def get_installed_bash_extra_version(self):
+    def get_installed_bash_extra_version(self) -> str | None:
         if not BASH_EXTRA_PATH.exists():
             return None
         match = self.VERSION_PATTERN.search(BASH_EXTRA_PATH.read_text())
@@ -130,17 +146,24 @@ class BashConfigWindow(QMainWindow):
             return None
         return match.group(1).strip()
 
+    def get_installed_bash_custom_version(self) -> str | None:
+        if not BASHRC_PATH.exists():
+            return None
+        match = self.VERSION_PATTERN.search(BASHRC_PATH.read_text())
+        if not match:
+            return None
+        return match.group(1).strip()
+
     def is_bash_extra_up_to_date(self):
+        """
+        todo: add return type
+        """
         installed_version = self.get_installed_bash_extra_version()
         return installed_version == BASH_EXTRA_VERSION
 
-    def is_bash_hook_enabled(self):
-        if not BASHRC_PATH.exists() or not FISH_CONFIG_PATH.exists():
-            return False
-        return (
-            bashrc_extra_text in BASHRC_PATH.read_text()
-            and bashrc_extra_text in FISH_CONFIG_PATH.read_text()
-        )
+    def is_bash_custom_up_to_date(self):
+        installed_version = self.get_installed_bash_custom_version()
+        return installed_version == BASH_CUSTOM_VERSION
 
     def set_status_icon(self, label: QLabel, enabled):
         if enabled is False and label is self.status_labels.get("bash_extra_file"):

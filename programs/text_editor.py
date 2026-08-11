@@ -6,9 +6,10 @@ from programs.config import (
     PACMAN_CONF_PATH,
     BASH_EXTRA_PATH,
     BASHRC_PATH,
-    FISH_CONFIG_PATH,
     BASH_EXTRA_VERSION,
+    BASH_CUSTOM_TEMPLATE_PATH,
     BASH_EXTRA_TEMPLATE_PATH,
+    BASH_CUSTOM_VERSION,
 )
 
 # Arch / Pacman config
@@ -20,7 +21,6 @@ multilib_enabled = "[multilib]\nInclude = /etc/pacman.d/mirrorlist"
 # Bash config
 bash_extra_path = BASH_EXTRA_PATH
 bashrc_path = BASHRC_PATH
-fish_config_path = FISH_CONFIG_PATH
 bashrc_extra_text = 'if [ -f ~/.bash_extra ]; then\n. ~/.bash_extra\nfi'
 bash_extra_version = BASH_EXTRA_VERSION
 _bash_extra_body = BASH_EXTRA_TEMPLATE_PATH.read_text().rstrip()
@@ -29,10 +29,17 @@ bash_extra_text = (
     f"# arch-mysetup-bash-extra-version: {bash_extra_version}\n\n"
     f"{_bash_extra_body}\n"
 )
+bash_custom_version = BASH_CUSTOM_VERSION
+_bash_custom_body = BASH_CUSTOM_TEMPLATE_PATH.read_text().rstrip()
+bash_custom_text = (
+    f"# Managed by arch-mysetup\n"
+    f"# arch-mysetup-bash-extra-version: {bash_custom_version}\n\n"
+    f"{_bash_custom_body}\n"
+)
 
 
 # todo: find text and then read the whole line to edit eg. ParallelDownload=5 to edit the number
-def check_if_text_exists(file: Path, search_text: str):
+def check_if_text_exists(file: Path, search_text: str) -> bool:
     """
     Checks if text exists in file.
     :param file: the file to check
@@ -47,7 +54,7 @@ def check_if_text_exists(file: Path, search_text: str):
         return True
 
 
-def sudo_replace_text(file: Path, search_text: str, replace_text: str):
+def sudo_replace_text(file: Path, search_text: str, replace_text: str) -> None:
     script_path = Path(__file__).resolve().parent / \
                   "../scripts/text_writer.py"
     subprocess.run([
@@ -60,7 +67,7 @@ def sudo_replace_text(file: Path, search_text: str, replace_text: str):
     ], check=True)
 
 
-def sudo_write_text(file: Path, text: str):
+def sudo_write_text(file: Path, text: str) -> None:
     script_path = Path(__file__).resolve().parent / \
                   "../scripts/text_writer.py"
     subprocess.run([
@@ -72,12 +79,22 @@ def sudo_write_text(file: Path, text: str):
     ], check=True)
 
 
-def enable_bash_extra():
+def update_bash_custom() -> None:
+    """
+    Updates custom bash configuration
+    """
+    if bashrc_path.exists():
+        print(f"Updating ~/.bash_extra to version {bash_custom_version}...")
+    else:
+        print(f"Installing ~/.bash_extra version {bash_custom_version}...")
+    bashrc_path.write_text(bash_custom_text)
+
+
+def enable_bash_extra() -> bool:
     """
     Enables extra bash configuration to add the bash_extra file
 
     Returns True if extra bash configuration was enabled
-    :rtype: bool
     """
     changed = False
 
@@ -90,35 +107,23 @@ def enable_bash_extra():
             f.write("\n" + bashrc_extra_text + "\n")
         changed = True
 
-    # Enable ~/.bash_extra source line in ~/.config/fish/config.fish
-    fish_config_path.parent.mkdir(parents=True, exist_ok=True)
-    if not fish_config_path.exists():
-        fish_config_path.touch()
-    fish_config_data = fish_config_path.read_text()
-    if bashrc_extra_text not in fish_config_data:
-        with open(fish_config_path, "a") as f:
-            f.write("\n" + bashrc_extra_text + "\n")
-        changed = True
-
     if changed:
-        print("Enabled bash extra in ~/.bashrc and ~/.config/fish/config.fish")
+        print("Enabled bash extra in ~/.bashrc")
     return changed
 
 
-def write_bash_extra():
+def write_bash_extra() -> None:
     """
     Enables extra bash configuration to add the bash extra file
     If it already exists then it is updated.
-    :rtype: None
     """
     # Backwards-compatible wrapper for full overwrite updates.
     update_bash_extra()
 
 
-def update_bash_extra():
+def update_bash_extra() -> None:
     """
     Overwrite ~/.bash_extra with the latest managed template and version header.
-    :rtype: None
     """
     if bash_extra_path.exists():
         print(f"Updating ~/.bash_extra to version {bash_extra_version}...")
@@ -127,83 +132,80 @@ def update_bash_extra():
     bash_extra_path.write_text(bash_extra_text)
 
 
-def check_multilib():
+def check_multilib() -> bool:
     """
     Checks if multilib is enabled.
     Returns True if multilib configuration was enabled
-    :rtype: bool
     """
     if pacman_conf.exists():
         if multilib_enabled in pacman_conf.read_text():
             return True
         else:
             return False
-    return None
+    return False
 
 
-def enable_multilib():
+def enable_multilib() -> None:
     # Enable multilib in pacman.conf
     if pacman_conf.exists():
         print("Enabling Multilib...")
         sudo_replace_text(pacman_conf, multilib_disabled, multilib_enabled)
 
 
-def disable_multilib():
+def disable_multilib() -> None:
     # Disable multilib in pacman.conf
     if pacman_conf.exists():
         print("Disabling Multilib...")
         sudo_replace_text(pacman_conf, multilib_enabled, multilib_disabled)
 
 
-def check_pacman_color():
+def check_pacman_color() -> bool:
     """
     Check whether pacman color is enabled.
     Returns True if pacman color was enabled
-    :rtype: bool
     """
     if pacman_conf.exists():
         if "#Color" in pacman_conf.read_text():
             return False
         else:
             return True
-    return None
+    return False
 
 
-def pacman_enable_color():
+def pacman_enable_color() -> None:
     # Enable pacman colored output
     if pacman_conf.exists():
         print("Enabling color in pacman...")
         sudo_replace_text(pacman_conf, "#Color", "Color")
 
 
-def pacman_disable_color():
+def pacman_disable_color() -> None:
     # Disable pacman colored output
     if pacman_conf.exists():
         print("Enabling color in pacman...")
         sudo_replace_text(pacman_conf, "Color", "#Color")
 
 
-def pacman_check_parallel_downloads():
+def pacman_check_parallel_downloads() -> bool:
     """
     Checks if pacman parallel downloads is enabled.
     Returns True if pacman parallel downloads was enabled
-    :rtype: bool
     """
     if pacman_conf.exists():
         if "#ParallelDownloads=5" in pacman_conf.read_text():
             return False
         else:
             return True
-    return None
+    return False
 
 
-def pacman_enable_parallel_downloads():
+def pacman_enable_parallel_downloads() -> None:
     # Enable parallel downloads
     if pacman_conf.exists():
         sudo_replace_text(pacman_conf, "#ParallelDownloads=5", "ParallelDownloads=5")
 
 
-def pacman_disable_parallel_downloads():
+def pacman_disable_parallel_downloads() -> None:
     # Disable parallel downloads
     if pacman_conf.exists():
         sudo_replace_text(pacman_conf, "ParallelDownloads=5", "#ParallelDownloads=5")
@@ -214,6 +216,7 @@ def pacman_check_database_refreshed(max_age_hours=24):
     Checks whether pacman's sync databases were refreshed recently.
     Returns True when at least one sync database exists and the newest one
     was updated within the allowed age window.
+    todo: add return type
     """
     if not pacman_sync_dir.exists():
         return False
@@ -227,7 +230,7 @@ def pacman_check_database_refreshed(max_age_hours=24):
     return newest_refresh >= datetime.now() - timedelta(hours=max_age_hours)
 
 
-def pacman_refresh_database():
+def pacman_refresh_database() -> None:
     """Refresh pacman's package databases."""
     subprocess.run(
         ["pkexec", "pacman", "-Sy"],

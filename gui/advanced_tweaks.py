@@ -35,6 +35,31 @@ from programs.config import (
 )
 
 
+def set_status_icon(label: QLabel, enabled):
+    apply_status_icon(label, enabled)
+
+
+def is_airplay_enabled():
+    return AIRPLAY_DEST_PATH.exists()
+
+
+def is_zeroconf_enabled():
+    return ZEROCONF_DEST_PATH.exists()
+
+
+def is_git_keystore_enabled():
+    result = subprocess.run(
+        ["git", "config", "--global", "credential.helper"],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        check=False,
+    )
+    if result.returncode not in (0, 1):
+        return None
+    return result.stdout.strip() == "store"
+
+
 class AdvancedTweaks(QMainWindow):
     ADV_BUTTON_WIDTH = 300
 
@@ -61,9 +86,9 @@ class AdvancedTweaks(QMainWindow):
         header_widget = create_page_header(self.back_button_container, "Advanced Tweaks")
 
         self.tweaks = [
-            ("git_keystore", "Enable Git Credential Store", git_keystore, "Git credential helper task completed.", self.is_git_keystore_enabled),
-            ("zeroconf", "Enable PipeWire Zeroconf Discover", zeroconf_discover_pw, "Zeroconf discover task completed.", self.is_zeroconf_enabled),
-            ("airplay", "Enable PipeWire AirPlay Discover", airplay_discover_pw, "AirPlay discover task completed.", self.is_airplay_enabled),
+            ("git_keystore", "Enable Git Credential Store", git_keystore, "Git credential helper task completed.", is_git_keystore_enabled),
+            ("zeroconf", "Enable PipeWire Zeroconf Discover", zeroconf_discover_pw, "Zeroconf discover task completed.", is_zeroconf_enabled),
+            ("airplay", "Enable PipeWire AirPlay Discover", airplay_discover_pw, "AirPlay discover task completed.", is_airplay_enabled),
         ]
 
         tweaks_container = QFrame()
@@ -79,7 +104,7 @@ class AdvancedTweaks(QMainWindow):
         pacman_row.addStretch()
         tweaks_layout.addLayout(pacman_row)
 
-        bash_page_button = QPushButton("Open Page: Bash/Fish Config")
+        bash_page_button = QPushButton("Open Page: Bash Config")
         bash_page_button.setIcon(QIcon(str(BLUE_RIGHT_ARROW_ICON_PATH)))
         bash_page_button.setFixedWidth(self.ADV_BUTTON_WIDTH)
         bash_page_button.clicked.connect(self.open_bash_config)
@@ -146,27 +171,6 @@ class AdvancedTweaks(QMainWindow):
         self.bash_config_window.show()
         self.hide()
 
-    def is_git_keystore_enabled(self):
-        result = subprocess.run(
-            ["git", "config", "--global", "credential.helper"],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
-            check=False,
-        )
-        if result.returncode not in (0, 1):
-            return None
-        return result.stdout.strip() == "store"
-
-    def is_zeroconf_enabled(self):
-        return ZEROCONF_DEST_PATH.exists()
-
-    def is_airplay_enabled(self):
-        return AIRPLAY_DEST_PATH.exists()
-
-    def set_status_icon(self, label: QLabel, enabled):
-        apply_status_icon(label, enabled)
-
     def refresh_statuses(self):
         for key, _, _, _, status_fn in self.tweaks:
             label = self.status_labels.get(key)
@@ -176,4 +180,4 @@ class AdvancedTweaks(QMainWindow):
                 enabled = status_fn()
             except Exception:
                 enabled = None
-            self.set_status_icon(label, enabled)
+            set_status_icon(label, enabled)

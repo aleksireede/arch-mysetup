@@ -68,8 +68,18 @@
   source: Unknown
   category: Utilities
   conflicts: []
+- name: cowsay-bin
+  description: Default description for cowsay-bin
+  source: paru
+  category: Utilities
+  conflicts: []
 - name: dolphin
   description: Default description for dolphin
+  source: pacman
+  category: Utilities
+  conflicts: []
+- name: dolphin-emu
+  description: Default description for dolphin-emu
   source: pacman
   category: Utilities
   conflicts: []
@@ -131,6 +141,11 @@
 - name: fontconfig
   description: Default description for fontconfig
   source: Unknown
+  category: Utilities
+  conflicts: []
+- name: fortune-mod
+  description: Default description for fortune-mod
+  source: pacman
   category: Utilities
   conflicts: []
 - name: gamemode
@@ -356,6 +371,11 @@
 - name: localsend-bin
   description: Default description for localsend-bin
   source: Unknown
+  category: Utilities
+  conflicts: []
+- name: lolcat
+  description: Default description for lolcat
+  source: pacman
   category: Utilities
   conflicts: []
 - name: lsp-plugins
