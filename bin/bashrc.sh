@@ -40,7 +40,6 @@ fi
 alias grep='ugrep --color=auto'
 alias fgrep='ugrep -F --color=auto'
 alias egrep='ugrep -E --color=auto'
-alias rg='ripgrep'
 
 # -----------------------------------------------------------------------------
 # Navigation

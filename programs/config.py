@@ -16,7 +16,7 @@ BLUE_RIGHT_ARROW_ICON_PATH = ICONS_DIR.joinpath("blue_right_arrow.svg")
 
 # Managed versions
 BASH_EXTRA_VERSION = "1.2"
-BASH_CUSTOM_VERSION = "1.2"
+BASH_CUSTOM_VERSION = "1.3"
 
 # System/user config paths
 PACMAN_CONF_PATH = Path("/etc/pacman.conf")
