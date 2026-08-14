@@ -61,7 +61,6 @@ mkcd() {
 
 alias cp='cp -iv'
 alias mv='mv -iv'
-alias rm='rm -Iv'
 alias mkdir='mkdir -pv'
 
 alias df='df -h'
@@ -113,7 +112,7 @@ cleanup() {
     orphans=$(pacman -Qtdq)
 
     if [[ -n "$orphans" ]]; then
-        sudo pacman -Rns $orphans
+        sudo pacman -Rns "$orphans"
     else
         echo "No orphan packages."
     fi

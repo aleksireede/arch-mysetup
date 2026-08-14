@@ -6,6 +6,12 @@ import tempfile
 import time
 from pathlib import Path
 
+# Filesystem types that are backed by the network (fstab "type" field).
+NETWORK_FS_TYPES = {
+    "cifs", "cifs4", "smbfs", "smb", "nfs", "nfs4", "nfsv4", "nfsd",
+    "sshfs", "ncpfs", "webdav", "davfs2", "dav", "ftp", "ftps",
+}
+
 
 def command_exists(command):
     return shutil.which(command) is not None
@@ -299,3 +305,112 @@ def generate_unique_cred_path(root_dir=None, max_attempts=100):
             raise RuntimeError(f"Permission denied while creating {candidate_dir}") from e
 
     raise RuntimeError("Failed to allocate a unique credentials path")
+
+
+def _is_network_device(device: str) -> bool:
+    """Return True when a fstab device field denotes a network source."""
+    if not device:
+        return False
+    lowered = device.lower()
+    # Windows/Samba share: //host/share
+    if lowered.startswith("//"):
+        return True
+    # URL-style source: smb://, nfs://, webdav://, etc.
+    if "://" in lowered:
+        return True
+    # NFS classic "host:/path" form (not a /dev node).
+    if not lowered.startswith("/") and ":/" in lowered:
+        return True
+    return False
+
+
+def parse_fstab_network_drives(fstab_path=None):
+    """
+    Read fstab and return entries that are backed by the network.
+
+    An entry is considered a network drive when either:
+      * its filesystem type is listed in NETWORK_FS_TYPES, or
+      * its device field starts with '//' (SMB/CIFS share), contains '://'
+        (NFS/SSHFS/WebDAV style URL), or uses the NFS 'host:/path' form.
+
+    Each entry is a dict with keys:
+        device, mount_point, fs_type, options, dump, pass, raw
+
+    Returns an empty list when the file is missing or unreadable.
+    """
+    path = Path(fstab_path) if fstab_path else Path("/etc/fstab")
+    entries = []
+    if not path.exists():
+        return entries
+    try:
+        lines = path.read_text().splitlines()
+    except OSError:
+        return entries
+
+    for raw_line in lines:
+        line = raw_line.strip()
+        if not line or line.startswith("#"):
+            continue
+        # fstab layout: <device> <mount> <type> <options> <dump> <pass>
+        parts = line.split()
+        if len(parts) < 4:
+            continue
+        device = parts[0]
+        mount_point = parts[1]
+        fs_type = parts[2].lower()
+        options = parts[3]
+        dump = parts[4] if len(parts) > 4 else "0"
+        pass_num = parts[5] if len(parts) > 5 else "0"
+
+        if fs_type in NETWORK_FS_TYPES or _is_network_device(device):
+            entries.append({
+                "device": device,
+                "mount_point": mount_point,
+                "fs_type": fs_type,
+                "options": options,
+                "dump": dump,
+                "pass": pass_num,
+                "raw": raw_line,
+            })
+    return entries
+
+
+def get_mount_size(mount_point):
+    """
+    Determine the on-disk size of a network drive by inspecting its mount point.
+
+    Returns ``(mounted, size_text)`` where ``mounted`` is True when the path is an
+    active mount point and ``size_text`` is a human-readable usage string such as
+    "12G / 50G (24%)". When the path is not mounted, returns
+    ``(False, "Not mounted")``.
+
+    Subprocess calls are guarded with timeouts so a stale/unresponsive mount never
+    blocks the UI; a missing tool or failure simply falls back to "Mounted".
+    """
+    path = str(mount_point)
+    try:
+        if not os.path.ismount(path):
+            return False, "Not mounted"
+    except (OSError, ValueError):
+        return False, "Not mounted"
+
+    try:
+        result = subprocess.run(
+            ["df", "-h", path],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            text=True,
+            timeout=10,
+        )
+        lines = result.stdout.splitlines()
+        if len(lines) >= 2:
+            parts = lines[1].split()
+            # Filesystem  Size  Used  Avail  Use%  Mounted on
+            if len(parts) >= 6:
+                size = parts[1]
+                used = parts[2]
+                use_pct = parts[4]
+                return True, f"{used} / {size} ({use_pct})"
+        return True, "Mounted"
+    except (subprocess.SubprocessError, OSError):
+        return True, "Mounted"

@@ -1,0 +1,15 @@
+tools:
+    shell:
+        allow:
+            - find *
+            - head *
+            - echo *
+            - ls *
+            - wc *
+            - tail *
+            - cat *
+            - python3 *
+            - grep *
+            - sed *
+            - cd *
+            - git *

@@ -23,6 +23,7 @@ PACMAN_CONF_PATH = Path("/etc/pacman.conf")
 PACMAN_MIRRORLIST_PATH = Path("/etc/pacman.d/mirrorlist")
 PACMAN_REFLECTOR_CONFIG_PATH = Path("/etc/xdg/reflector/reflector.conf")
 XORG_KEYBOARD_CONF_PATH = Path("/etc/X11/xorg.conf.d/00-keyboard.conf")
+FSTAB_PATH = Path("/etc/fstab")
 
 BASH_EXTRA_PATH = Path.home().joinpath(".bash_extra")
 BASHRC_PATH = Path.home().joinpath(".bashrc")

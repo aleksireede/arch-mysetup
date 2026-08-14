@@ -6,9 +6,9 @@ import urllib.request
 from pathlib import Path
 
 from PyQt5.QtCore import pyqtSignal, QObject, QThread
-from PyQt5.QtGui import QPixmap
+from PyQt5.QtGui import QPixmap, QColor, QBrush
 from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QWidget, QPushButton, QLabel, QHBoxLayout, QMessageBox, QFrame, \
-    QLineEdit, QSizePolicy, QDialog, QFormLayout, QDialogButtonBox, QApplication
+    QLineEdit, QSizePolicy, QDialog, QFormLayout, QDialogButtonBox, QApplication, QTreeWidget, QTreeWidgetItem, QHeaderView
 
 programs_dir = str(Path(__file__).resolve().parent.parent.joinpath("programs"))
 sys.path.append(programs_dir)
@@ -18,7 +18,7 @@ sys.path.append(scripts_dir)
 
 from scripts.detect_gpu import detect_gpu_vendor
 from programs.config import CHECKMARK_ICON_PATH, RED_X_ICON_PATH
-from programs.installer_logic import install_paru, add_samba_drive, command_exists, open_terminal
+from programs.installer_logic import install_paru, add_samba_drive, command_exists, open_terminal, parse_fstab_network_drives, get_mount_size
 try:
     from .theme import configure_main_window, configure_dialog
 except ImportError:
@@ -95,6 +95,26 @@ class UpdateCheckWorker(QObject):
                 return "unknown"
 
 
+def run_sudo_command(command, validate_only=False):
+    full_command = ["pkexec", *command]
+    result = subprocess.run(
+        full_command,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+    if result.returncode != 0:
+        error_text = result.stderr.strip() or "privileged command failed"
+        raise RuntimeError(error_text)
+    if validate_only:
+        return None
+    return result
+
+
+def ensure_sudo_authenticated():
+    return True
+
+
 class SetupWindow(QMainWindow):
     open_installer = pyqtSignal()  # Signal to open the installer
     open_uninstaller = pyqtSignal()
@@ -135,6 +155,9 @@ class SetupWindow(QMainWindow):
         self.dev_tools_page_button = None
         self.browsers_page_button = None
         self.add_network_drive_button = None
+        self.network_drives_card = None
+        self.network_drives_tree = None
+        self.refresh_network_drives_button = None
         self.install_paru_button = None
         # end buttons
         self.paru_status = None
@@ -218,9 +241,44 @@ class SetupWindow(QMainWindow):
         self.update_layout.addLayout(update_info_layout, 1)
         self.update_layout.addWidget(self.update_button)
 
-        # Add Network Drive button
+        # Network Drives section: lists existing network drives from fstab
+        self.network_drives_card = QFrame()
+        self.network_drives_card.setObjectName("serviceCard")
+        network_card_layout = QVBoxLayout(self.network_drives_card)
+        network_card_layout.setContentsMargins(16, 14, 16, 14)
+        network_card_layout.setSpacing(12)
+
+        network_title = QLabel("Network Drives")
+        network_title.setObjectName("serviceTitle")
+
+        self.network_drives_tree = QTreeWidget()
+        self.network_drives_tree.setHeaderLabels(["Device", "Mount Point", "Type", "Options", "Size"])
+        self.network_drives_tree.setMinimumHeight(150)
+        self.network_drives_tree.setAlternatingRowColors(True)
+        network_header = self.network_drives_tree.header()
+        network_header.setStretchLastSection(False)
+        # Let "Options" absorb extra width; keep "Size" tight to its content.
+        network_header.setSectionResizeMode(3, QHeaderView.Stretch)
+        network_header.setSectionResizeMode(4, QHeaderView.ResizeToContents)
+
         self.add_network_drive_button = QPushButton("Add Network Drive (Samba)")
+        self.add_network_drive_button.setObjectName("serviceAction")
+        self.add_network_drive_button.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        self.add_network_drive_button.setFixedWidth(200)
         self.add_network_drive_button.clicked.connect(self.add_network_drive)
+
+        self.refresh_network_drives_button = QPushButton("Refresh")
+        self.refresh_network_drives_button.clicked.connect(self.refresh_network_drives)
+
+        network_button_row = QHBoxLayout()
+        network_button_row.setSpacing(12)
+        network_button_row.addWidget(self.add_network_drive_button)
+        network_button_row.addWidget(self.refresh_network_drives_button)
+        network_button_row.addStretch()
+
+        network_card_layout.addWidget(network_title)
+        network_card_layout.addWidget(self.network_drives_tree)
+        network_card_layout.addLayout(network_button_row)
 
         # Apps page button
         self.apps_page_button = QPushButton("Apps")
@@ -250,13 +308,11 @@ class SetupWindow(QMainWindow):
         self.install_paru_button.setFixedWidth(service_btn_width)
         self.gpudrv_button.setFixedWidth(service_btn_width)
         self.update_button.setFixedWidth(service_btn_width)
-        self.add_network_drive_button.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         self.apps_page_button.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         self.services_page_button.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         self.games_page_button.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         self.dev_tools_page_button.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         self.browsers_page_button.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-        self.add_network_drive_button.setFixedWidth(main_button_width)
         self.apps_page_button.setFixedWidth(main_button_width)
         self.services_page_button.setFixedWidth(main_button_width)
         self.games_page_button.setFixedWidth(main_button_width)
@@ -272,7 +328,6 @@ class SetupWindow(QMainWindow):
         self.bottom_layout.addWidget(self.dev_tools_page_button)
         self.bottom_layout.addWidget(self.browsers_page_button)
         self.bottom_layout.addWidget(self.services_page_button)
-        self.bottom_layout.addWidget(self.add_network_drive_button)
         self.bottom_layout.addWidget(self.advanced_tweak_btn)
 
         # Bottom outer layout
@@ -286,11 +341,13 @@ class SetupWindow(QMainWindow):
         self.layout.addWidget(self.paru_card)
         self.layout.addWidget(self.gpu_card)
         self.layout.addWidget(self.update_card)
+        self.layout.addWidget(self.network_drives_card)
         self.layout.addSpacing(16)
         self.layout.addLayout(self.outer_bottom_layout)
         self.layout.addSpacing(16)
         self.layout.addStretch()
 
+        self.refresh_network_drives()
         self.start_update_check()
 
     def update_gpu_status(self):
@@ -324,7 +381,7 @@ class SetupWindow(QMainWindow):
             return
 
         try:
-            self.run_sudo_command(["pacman", "-S", "--needed", "--noconfirm", *packages])
+            run_sudo_command(["pacman", "-S", "--needed", "--noconfirm", *packages])
             QMessageBox.information(self, "Success", f"{vendor} driver packages installed.")
             self.update_gpu_status()
         except RuntimeError as e:
@@ -391,10 +448,47 @@ class SetupWindow(QMainWindow):
         try:
             if add_samba_drive(share_path, mount_point, username, password):
                 QMessageBox.information(self, "Success", "Network drive added successfully!")
+                self.refresh_network_drives()
             else:
                 QMessageBox.critical(self, "Error", "Failed to add network drive.")
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to add network drive: {e}")
+
+    def refresh_network_drives(self):
+        """Re-read /etc/fstab and refresh the list of existing network drives.
+
+        For each drive the Size column shows the live usage of its mount point
+        (e.g. "12G / 50G (24%)") when the path is currently mounted, or
+        "Not mounted" when the mount point is not an active mount point.
+        """
+        self.network_drives_tree.setUpdatesEnabled(False)
+        self.network_drives_tree.clear()
+        drives = parse_fstab_network_drives()
+        if not drives:
+            placeholder = QTreeWidgetItem(["No network drives found in /etc/fstab.", "", "", "", ""])
+            placeholder.setToolTip(0, "No CIFS/NFS/SSHFS/WebDAV entries were detected in /etc/fstab")
+            self.network_drives_tree.addTopLevelItem(placeholder)
+        for drive in drives:
+            mount_point = drive["mount_point"]
+            mounted, size_text = get_mount_size(mount_point)
+            item = QTreeWidgetItem([
+                drive["device"],
+                mount_point,
+                drive["fs_type"],
+                drive["options"],
+                size_text,
+            ])
+            item.setToolTip(0, drive["raw"])
+            item.setToolTip(3, drive["options"])
+            item.setToolTip(4, size_text)
+            if mounted:
+                item.setForeground(4, QBrush(QColor("#4CAF50")))
+            else:
+                item.setForeground(4, QBrush(QColor("#EF5350")))
+            self.network_drives_tree.addTopLevelItem(item)
+        self.network_drives_tree.setUpdatesEnabled(True)
+        for col in range(self.network_drives_tree.columnCount()):
+            self.network_drives_tree.resizeColumnToContents(col)
 
     def open_app_installer(self):
         self.app_installer_callback()
@@ -497,21 +591,3 @@ class SetupWindow(QMainWindow):
             self.update_check_thread.quit()
             self.update_check_thread.wait(1500)
         super().closeEvent(event)
-
-    def ensure_sudo_authenticated(self):
-        return True
-
-    def run_sudo_command(self, command, validate_only=False):
-        full_command = ["pkexec", *command]
-        result = subprocess.run(
-            full_command,
-            text=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-        )
-        if result.returncode != 0:
-            error_text = result.stderr.strip() or "privileged command failed"
-            raise RuntimeError(error_text)
-        if validate_only:
-            return None
-        return result

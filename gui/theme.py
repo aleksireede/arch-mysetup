@@ -116,6 +116,24 @@ QFrame#pageHeaderSeparator {
     background-color: #ffffffdd;
     border: none;
 }
+QTreeWidget {
+    background-color: #111923;
+    border: 1px solid #2f4155;
+    border-radius: 8px;
+    font-size: 14px;
+    alternate-background-color: #161f2a;
+    color: #d6dee8;
+}
+QTreeWidget::item {
+    border-bottom: 1px solid #1b2430;
+}
+QHeaderView::section {
+    background-color: #1b2430;
+    color: #eaf2ff;
+    border: 1px solid #2e3f53;
+    padding: 4px 8px;
+    font-size: 13px;
+}
 """
 
 DEFAULT_WINDOW_WIDTH = 1440

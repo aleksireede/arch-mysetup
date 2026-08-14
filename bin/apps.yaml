@@ -68,6 +68,21 @@
   source: Unknown
   category: Utilities
   conflicts: []
+- name: bluedevil
+  description: Default description for bluedevil
+  source: pacman
+  category: Utilities
+  conflicts: []
+- name: bluez
+  description: Default description for bluez
+  source: pacman
+  category: Utilities
+  conflicts: []
+- name: bluez-utils
+  description: Default description for bluez-utils
+  source: pacman
+  category: Utilities
+  conflicts: []
 - name: cowsay-bin
   description: Default description for cowsay-bin
   source: paru
@@ -183,6 +198,11 @@
   source: Unknown
   category: Utilities
   conflicts: []
+- name: goverlay
+  description: Default description for goverlay
+  source: pacman
+  category: Utilities
+  conflicts: []
 - name: gstreamer
   description: Default description for gstreamer
   source: Unknown
@@ -233,6 +253,11 @@
   source: Unknown
   category: Utilities
   conflicts: []
+- name: kimageformats
+  description: Default description for kimageformats
+  source: pacman
+  category: Utilities
+  conflicts: []
 - name: kio-admin
   description: Default description for kio-admin
   source: pacman
@@ -243,6 +268,11 @@
   source: pacman
   category: Utilities
   conflicts: []
+- name: kio-fuse
+  description: Default description for kio-fuse
+  source: pacman
+  category: Utilities
+  conflicts: []
 - name: konsole
   description: Default description for konsole
   source: pacman
@@ -250,6 +280,16 @@
   conflicts: []
 - name: kscreen
   description: Default description for kscreen
+  source: pacman
+  category: Utilities
+  conflicts: []
+- name: kwallet
+  description: Default description for kwallet
+  source: pacman
+  category: Utilities
+  conflicts: []
+- name: kwalletmanager
+  description: Default description for kwalletmanager
   source: pacman
   category: Utilities
   conflicts: []
@@ -313,6 +353,11 @@
   source: Unknown
   category: Utilities
   conflicts: []
+- name: lib32-mesa
+  description: Default description for lib32-mesa
+  source: pacman
+  category: Utilities
+  conflicts: []
 - name: lib32-mpg123
   description: Default description for lib32-mpg123
   source: Unknown
@@ -331,6 +376,11 @@
 - name: lib32-pipewire-jack
   description: Default description for lib32-pipewire-jack
   source: Unknown
+  category: Utilities
+  conflicts: []
+- name: lib32-vulkan-radeon
+  description: Default description for lib32-vulkan-radeon
+  source: pacman
   category: Utilities
   conflicts: []
 - name: libimobiledevice
@@ -458,9 +508,19 @@
   source: Unknown
   category: Utilities
   conflicts: []
+- name: ntfsprogs
+  description: Default description for ntfsprogs
+  source: pacman
+  category: Utilities
+  conflicts: []
 - name: ocs-url
   description: Default description for ocs-url
   source: Unknown
+  category: Utilities
+  conflicts: []
+- name: okular
+  description: Default description for okular
+  source: pacman
   category: Utilities
   conflicts: []
 - name: openal
@@ -546,6 +606,16 @@
 - name: preload
   description: Default description for preload
   source: Unknown
+  category: Utilities
+  conflicts: []
+- name: protonplus
+  description: Default description for protonplus
+  source: paru
+  category: Utilities
+  conflicts: []
+- name: protontricks
+  description: Default description for protontricks
+  source: pacman
   category: Utilities
   conflicts: []
 - name: pwvucontrol
@@ -653,6 +723,11 @@
   source: Unknown
   category: Utilities
   conflicts: []
+- name: tree
+  description: Default description for tree
+  source: pacman
+  category: Utilities
+  conflicts: []
 - name: ttf-ms-fonts
   description: Default description for ttf-ms-fonts
   source: Unknown
@@ -671,6 +746,21 @@
 - name: vesktop-bin
   description: Default description for vesktop-bin
   source: Unknown
+  category: Utilities
+  conflicts: []
+- name: vkbasalt
+  description: Default description for vkbasalt
+  source: paru
+  category: Utilities
+  conflicts: []
+- name: vulkan-radeon
+  description: Default description for vulkan-radeon
+  source: pacman
+  category: Utilities
+  conflicts: []
+- name: vulkan-tools
+  description: Default description for vulkan-tools
+  source: pacman
   category: Utilities
   conflicts: []
 - name: wireplumber
